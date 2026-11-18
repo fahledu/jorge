@@ -1,0 +1,47 @@
+# Dependências
+node_modules/
+.pnpm-store/
+.venv/
+__pycache__/
+
+# Build e cache
+dist/
+build/
+out/
+.turbo/
+.cache/
+*.tsbuildinfo
+
+# Testes
+coverage/
+playwright-report/
+test-results/
+
+# Variáveis de ambiente (versionar só o exemplo)
+.env
+.env.*
+!.env.example
+
+# Chaves privadas e certificados (nunca no repositório)
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+id_ecdsa*
+
+# Logs
+*.log
+
+# Claude Code: configurações locais (agentes, hooks e skills em .claude/ são versionados)
+.claude/settings.local.json
+
+# Editor e sistema
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

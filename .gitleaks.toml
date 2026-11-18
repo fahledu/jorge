@@ -1,0 +1,28 @@
+# Varredura de segredos (gitleaks, no CI e em scripts/check-secrets.mjs): regras padrão
+# mais uma exceção estreita.
+#
+# A regra generic-api-key acusa qualquer `password = '...'` com cara de aleatório, e
+# teste precisa de senha fixa. Como o CI varre o histórico inteiro, um único falso
+# positivo deixaria o CI vermelho para sempre. Por isso a regra genérica não vale em
+# arquivo de teste. As regras específicas (chaves AWS, GitHub, Stripe, chave privada...)
+# continuam valendo em todo arquivo, inclusive nos de teste.
+#
+# Arquivo protegido: só a sessão principal altera, com o usuário. Não amplie a exceção
+# para código de produção nem para outras regras: segredo real vai em .env.local ou nos
+# secrets do GitHub, nunca no código. Falso positivo fora disso: corrija o arquivo antes
+# do commit; se já estiver no histórico publicado, a fingerprint vai em .gitleaksignore,
+# com comentário do porquê.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Senhas e tokens fixos de teste (só a regra genérica, só em arquivo de teste)"
+targetRules = ["generic-api-key"]
+paths = [
+  '''(^|/)(e2e|tests?|__tests__|__mocks__|fixtures?|__fixtures__|testdata)/''',
+  '''[._-](test|spec|e2e)\.[cm]?[jt]sx?$''',
+  '''(^|/)test_[^/]+\.py$''',
+  '''_test\.(py|go)$''',
+  '''(^|/)\.env\.example$''',
+]

@@ -1,0 +1,15 @@
+# Atualiza as ações do GitHub (fixadas por SHA nos workflows) uma vez por mês, num PR só,
+# e só com versões publicadas há uma semana ou mais. Cada PR roda o CI: não aumente a
+# frequência sem motivo. O devops acrescenta o gerenciador de pacotes da stack no mesmo
+# formato, conforme o ADR de stack.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ['*']
