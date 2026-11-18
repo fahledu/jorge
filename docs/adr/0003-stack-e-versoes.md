@@ -9,7 +9,7 @@ arquivos estáticos (ADR 0011). Precisa de física simples de plataforma, mapas 
 toque e teclado, e 60 fps em notebook comum e celular médio. O dono mantém outros
 projetos em TypeScript com pnpm, Vite, Vitest, Playwright e Biome (plataforma
 `fahledu/0003`); repetir as ferramentas poupa revisão. As versões exatas são conferidas
-no item de fundação (1a do roadmap) e anotadas na tabela.
+no item de fundação (1a do roadmap) e anotadas na tabela como versão inicial.
 
 ## Decisão
 - **Runtime de desenvolvimento e build:** Node 24 (LTS), a mesma versão em `engines`,
@@ -20,20 +20,24 @@ no item de fundação (1a do roadmap) e anotadas na tabela.
 - **Bibliotecas** (major fixado; trocar de major ou de biblioteca para o mesmo papel
   exige ADR que substitua este):
 
-  | Área | Pacote | Major | Versão exata |
+  | Área | Pacote | Major | Versão inicial (1a) |
   |---|---|---|---|
-  | Runtime e gerenciador | Node, pnpm | 24 / 10 | conferir no 1a |
-  | Linguagem | typescript (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) | 6 | conferir no 1a |
-  | Engine | phaser (Arcade Physics, loader de Tiled JSON, entrada por toque) | 3 | conferir no 1a (última do major 3) |
-  | Build | vite | 7 | conferir no 1a |
-  | Validação do save | zod (import `zod/mini`, menor no bundle) | 4 | conferir no 1a |
-  | Testes | vitest, @vitest/coverage-v8, @playwright/test, @axe-core/playwright | 4 / 4 / 1 / 4 | conferir no 1a |
-  | Lint e formato | @biomejs/biome (não formata `*.md` nem `*.yml`) | 2 | conferir no 1a |
+  | Runtime e gerenciador | Node, pnpm | 24 / 10 | 24.22.3 / 10.34.9 |
+  | Linguagem | typescript (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) | 6 | 6.0.3 |
+  | Tipos do Node (dev; testes de `scripts/` e arquivos de configuração) | @types/node | 24 | 24.19.2 |
+  | Engine | phaser (Arcade Physics, loader de Tiled JSON, entrada por toque) | 3 | 3.90.0 (última do major 3) |
+  | Build | vite | 7 | 7.3.8 |
+  | Validação do save | zod (import `zod/mini`, menor no bundle) | 4 | 4.6.7 |
+  | Testes | vitest, @vitest/coverage-v8, @playwright/test, @axe-core/playwright | 4 / 4 / 1 / 4 | 4.1.12 / 4.1.12 / 1.65.0 / 4.14.0 |
+  | Lint e formato | @biomejs/biome (não formata `*.md` nem `*.yml`) | 2 | 2.6.6 |
   | Servidor estático | Caddy (imagem `-alpine`, por digest) | 2 | a mesma da plataforma (`fahledu/0003`) |
   | Edição de trechos (ferramenta do autor, fora do `package.json`) | Tiled | 1.10 ou mais nova | formato `.tmj` (ADR 0005) |
 
 - **Menus e HUD fora do canvas sem framework:** TypeScript e DOM puros, CSS à mão com os
   tokens do `docs/DESIGN.md` (ADR 0009). Sem React, sem biblioteca de UI.
+  A coluna "Versão inicial (1a)" registra o que o item 1a instalou (conferido no npm em
+  2026-11-18). Depois do 1a, patch e minor vivem só no `package.json` e no lockfile; o
+  ADR só muda em troca de major ou de biblioteca.
 - **Versão nova de um pacote:** a mais nova do major com mais de 7 dias publicada.
 - **Versões exatas** (`save-exact=true`), `pnpm-lock.yaml` versionado, CI e imagem
   instalam com `--frozen-lockfile`.

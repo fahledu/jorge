@@ -8,3 +8,6 @@
 *.pdf binary
 *.woff binary
 *.woff2 binary
+
+# Cópia do pack sem conversão de fim de linha: o hash do SOURCE.md vale em qualquer SO (ADR 0008)
+assets/kenney/** -text

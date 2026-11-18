@@ -1,0 +1,41 @@
+# Lint, tipos, testes com cobertura, build e auditoria da stack (ADR 0010), num job só
+# (o GitHub cobra cada job arredondado para o minuto de cima; estimativa: 2 a 3 min).
+# Push só de documentação não roda aqui: o ci.yml cobre documentação e segredos.
+# E2E não roda em push: roda no deploy e localmente (ADR 0011). levels:check entra no 1g.
+name: Stack
+
+on:
+  push:
+    branches: [main, master]
+    paths-ignore: ['**.md', 'docs/**']
+  pull_request:
+    paths-ignore: ['**.md', 'docs/**']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stack-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  stack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # Ações fixadas por SHA de commit (a versão vai no comentário); o Dependabot atualiza.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Versão do pnpm vem do packageManager do package.json.
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test:coverage
+      - run: pnpm build
+      - run: pnpm audit --prod --audit-level high

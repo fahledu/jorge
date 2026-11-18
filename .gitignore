@@ -45,3 +45,6 @@ id_ecdsa*
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Pack da Kenney: só fonte local; o que o jogo usa fica em assets/kenney/ (ADR 0008)
+kenney_pixel-platformer/

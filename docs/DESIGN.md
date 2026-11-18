@@ -6,8 +6,8 @@ o pack Kenney Pixel Platformer (ADR 0008); este arquivo cobre o que fica em volt
 - **Token** é um nome com papel (`--color-primary`, `--space-4`...). Os nomes são iguais
   no mockup (`docs/mockup/index.html`) e no código. Nenhuma tela usa valor solto.
 - **Tema único**, o do jogo: não segue claro/escuro do sistema (ADR 0009).
-- Depois do item de fundação (1a), os valores moram no tema do código
-  (`src/ui/tokens.css`) e este arquivo só aponta para lá.
+- **Os valores moram em `src/ui/tokens.css`** (desde o item 1a); este arquivo traz nomes,
+  papéis e regras de uso. Mudou um valor: muda lá e, se for cor, refaz o contraste abaixo.
 - Suposição: sem referência visual da marca; a direção é "painel azul-noite sobre o céu
   do jogo, amarelo-moeda como destaque", tirada das cores do próprio pack.
 
@@ -15,23 +15,23 @@ o pack Kenney Pixel Platformer (ADR 0008); este arquivo cobre o que fica em volt
 
 Contrastes calculados (WCAG 2.2). Texto ≥ 4,5:1; texto grande e bordas de controle ≥ 3:1.
 
-| Token | Valor | Papel |
-|---|---|---|
-| `--color-bg` | `#141a33` | Fundo da página em volta do jogo e faixa do HUD |
-| `--color-surface` | `#232c52` | Painel dos menus (sobre o jogo escurecido) |
-| `--color-surface-2` | `#2e3966` | Item de lista, botão secundário, cartão dentro do painel |
-| `--color-overlay` | `#141a33cc` | Véu sobre o jogo atrás do painel (pausa, fim de fase) |
-| `--color-text` | `#f5f6fa` | Texto principal |
-| `--color-muted` | `#b4bcd9` | Texto secundário, rótulos, ajuda |
-| `--color-primary` | `#f7c948` | Botão principal, destaque, "Novo recorde!" |
-| `--color-primary-hover` | `#ffd966` | Botão principal com o ponteiro em cima |
-| `--color-on-primary` | `#1b1b1b` | Texto sobre `--color-primary` |
-| `--color-danger` | `#c03a35` | Botão de perigo (apagar progresso) |
-| `--color-danger-text` | `#ff8a80` | Texto e borda de erro sobre o painel |
-| `--color-success` | `#6fdc8c` | Fase concluída, confirmação |
-| `--color-border` | `#7a87b8` | Borda de campo, botão secundário e cartão |
-| `--color-focus` | `#ffffff` | Anel de foco (com sombra `--color-bg` por fora) |
-| `--color-sky` | `#5aa9e6` | Céu do jogo atrás do mapa (cor de fundo do canvas) |
+| Token | Papel |
+|---|---|
+| `--color-bg` | Fundo da página em volta do jogo e faixa do HUD |
+| `--color-surface` | Painel dos menus (sobre o jogo escurecido) |
+| `--color-surface-2` | Item de lista, botão secundário, cartão dentro do painel |
+| `--color-overlay` | Véu sobre o jogo atrás do painel (pausa, fim de fase) |
+| `--color-text` | Texto principal |
+| `--color-muted` | Texto secundário, rótulos, ajuda |
+| `--color-primary` | Botão principal, destaque, "Novo recorde!" |
+| `--color-primary-hover` | Botão principal com o ponteiro em cima |
+| `--color-on-primary` | Texto sobre `--color-primary` |
+| `--color-danger` | Botão de perigo (apagar progresso) |
+| `--color-danger-text` | Texto e borda de erro sobre o painel |
+| `--color-success` | Fase concluída, confirmação |
+| `--color-border` | Borda de campo, botão secundário e cartão |
+| `--color-focus` | Anel de foco (com sombra `--color-bg` por fora) |
+| `--color-sky` | Céu do jogo atrás do mapa (cor de fundo do canvas) |
 
 | Par (texto / fundo) | Contraste | Mínimo |
 |---|---|---|
@@ -60,38 +60,38 @@ Fonte do sistema (sem download, legível em 16 px no celular). Suposição: uma 
 com licença OFL pode entrar depois só em títulos (ADR 0008); o HUD usa os dígitos do
 próprio pack Kenney.
 
-| Token | Valor |
+| Token | Uso |
 |---|---|
-| `--font-ui` | `system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` |
-| `--font-num` | `ui-monospace, "Cascadia Mono", "Consolas", monospace` (pontos e tempos, largura fixa) |
+| `--font-ui` | Menus e textos |
+| `--font-num` | Pontos e tempos, largura fixa |
 
-| Token | Tamanho / altura de linha | Peso | Uso |
-|---|---|---|---|
-| `--text-display` | 40 px / 1,1 | 800 | Nome do jogo na tela de título |
-| `--text-title` | 28 px / 1,2 | 800 | Título de tela ("Pausa", "Fase 12 concluída!") |
-| `--text-heading` | 20 px / 1,3 | 700 | Subtítulo, número da fase no cartão |
-| `--text-body` | 16 px / 1,5 | 400 | Texto, botões (botões em 700) |
-| `--text-small` | 14 px / 1,4 | 400 | Ajuda, rótulo secundário, créditos |
+| Token | Peso | Uso |
+|---|---|---|
+| `--text-display` | 800 | Nome do jogo na tela de título |
+| `--text-title` | 800 | Título de tela ("Pausa", "Fase 12 concluída!") |
+| `--text-heading` | 700 | Subtítulo, número da fase no cartão |
+| `--text-body` | 400 | Texto, botões (botões em 700) |
+| `--text-small` | 400 | Ajuda, rótulo secundário, créditos |
 
 Texto grande para contraste = 24 px ou mais, ou 18,66 px em 700.
 
 ## Espaço e forma
 
-| Token | Valor | Uso |
-|---|---|---|
-| `--space-1` | 4 px | Entre ícone e texto |
-| `--space-2` | 8 px | Dentro de cartão pequeno, entre botões em linha |
-| `--space-3` | 12 px | Padding vertical de botão |
-| `--space-4` | 16 px | Padding de cartão, entre itens de lista |
-| `--space-6` | 24 px | Padding do painel, entre grupos |
-| `--space-8` | 32 px | Margem do painel até a borda da tela |
-| `--radius-sm` | 4 px | Cartão de fase, campo |
-| `--radius-md` | 8 px | Botão, painel |
-| `--border-w` | 2 px | Bordas (pixel art pede borda grossa) |
-| `--shadow-panel` | `0 4px 0 #0b0f20` | Painel e botão: sombra dura, sem desfoque (estilo pixel) |
-| `--panel-max` | 560 px | Largura máxima do painel de menu |
-| `--touch-size` | 64 px | Botão de toque (mínimo 48 px, ADR 0009) |
-| `--game-w` / `--game-h` | 480 / 270 px | Resolução interna, escalada inteira (ADR 0009) |
+| Token | Uso |
+|---|---|
+| `--space-1` | Entre ícone e texto |
+| `--space-2` | Dentro de cartão pequeno, entre botões em linha |
+| `--space-3` | Padding vertical de botão |
+| `--space-4` | Padding de cartão, entre itens de lista |
+| `--space-6` | Padding do painel, entre grupos |
+| `--space-8` | Margem do painel até a borda da tela |
+| `--radius-sm` | Cartão de fase, campo |
+| `--radius-md` | Botão, painel |
+| `--border-w` | Bordas (pixel art pede borda grossa) |
+| `--shadow-panel` | Painel e botão: sombra dura, sem desfoque (estilo pixel) |
+| `--panel-max` | Largura máxima do painel de menu |
+| `--touch-size` | Botão de toque (mínimo 48 px, ADR 0009) |
+| `--game-w` / `--game-h` | Resolução interna, escalada inteira (ADR 0009) |
 
 Pontos de quebra: o jogo ocupa a tela toda em 16:9 com faixas `--color-bg`. Menus:
 abaixo de 600 px de altura (celular em paisagem) o painel ocupa a altura toda com rolagem

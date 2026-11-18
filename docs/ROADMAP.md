@@ -70,7 +70,8 @@ que terminou").
 - **Escopo:** constantes de `physics.ts`, jogador com animação de 2 frames, andar,
   pulo com altura variável, colisão com o terreno, câmera, morte por queda e recomeço,
   bandeira que conclui a fase; entrada por teclado pela abstração de comandos; pausa
-  (Esc/P) e pausa por perda de foco.
+  (Esc/P) e pausa por perda de foco; contador de fps de debug só no modo de
+  desenvolvimento (ADR 0010).
 - **ADRs:** 0004, 0006, 0009.
 - **Depende de:** 1b.
 - **Pronto quando:** a fase 1 é jogável do início à bandeira pelo teclado; o alcance
@@ -133,7 +134,8 @@ que terminou").
   tela de recordes (total, fases concluídas, por fase pontos e tempo), pausa (continuar,
   recomeçar, sair), configurações (reduzir efeitos, controles de toque, apagar
   progresso com confirmação), créditos com o aviso de onde o progresso fica,
-  fim de jogo, aviso de versão nova; textos pt-BR do mockup.
+  fim de jogo, aviso de versão nova, "Carregando" e "Erro de tela"; textos pt-BR do
+  mockup.
 - **ADRs:** 0006, 0007, 0009.
 - **Depende de:** 1i.
 - **Pronto quando:** todas as telas navegáveis só por teclado; axe sem violações em

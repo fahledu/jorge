@@ -1,0 +1,8 @@
+# Cadeia de dependências: ADR 0003. Um pacote só, sem workspaces (ADR 0004).
+
+# Versão publicada há menos de 7 dias (10080 min) não é instalada.
+minimumReleaseAge: 10080
+
+# Scripts de instalação só destes pacotes. Incluir outro pede aprovação do usuário.
+onlyBuiltDependencies:
+  - esbuild

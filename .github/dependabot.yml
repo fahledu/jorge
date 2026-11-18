@@ -1,7 +1,7 @@
-# Atualiza as ações do GitHub (fixadas por SHA nos workflows) uma vez por mês, num PR só,
-# e só com versões publicadas há uma semana ou mais. Cada PR roda o CI: não aumente a
-# frequência sem motivo. O devops acrescenta o gerenciador de pacotes da stack no mesmo
-# formato, conforme o ADR de stack.
+# Atualiza as ações do GitHub (fixadas por SHA nos workflows) e as dependências npm uma
+# vez por mês, um PR por ecossistema, e só com versões publicadas há uma semana ou mais
+# (ADR 0003). Cada PR roda o CI: não aumente a frequência sem motivo. Troca de major
+# exige ADR: o Dependabot só propõe patch e minor.
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -12,4 +12,16 @@ updates:
       default-days: 7
     groups:
       actions:
+        patterns: ['*']
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+    groups:
+      npm:
         patterns: ['*']

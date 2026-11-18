@@ -78,17 +78,16 @@ docs/
 ```bash
 node scripts/check-docs.mjs                  # consistência da documentação
 node --test --test-reporter=dot .claude/hooks/hooks.test.mjs  # testes dos hooks
-# Os scripts abaixo nascem no item 1a do roadmap
 pnpm test:quiet                              # testes, só falhas e total (use este)
-pnpm install                                 # dependências
-pnpm dev                                     # jogo em modo de desenvolvimento (Vite)
+pnpm install                                 # dependências (e, uma vez, pnpm exec playwright install chromium)
+pnpm dev                                     # jogo em http://localhost:5190 (Vite)
 pnpm test                                    # todos os testes (Vitest)
 pnpm exec vitest run src/domain/score.test.ts   # um arquivo (-t "<nome>" para um teste)
 pnpm lint && pnpm typecheck                  # Biome e tsc
-pnpm levels:build                            # gera as 100 fases em levels/generated/
-pnpm levels:check                            # confere que as 100 fases podem ser concluídas
+pnpm levels:build                            # gera as 100 fases em levels/generated/ (nasce no 1g)
+pnpm levels:check                            # confere as 100 fases (nasce no 1g)
 pnpm build                                   # build de produção
-pnpm e2e                                     # Playwright com axe
+pnpm e2e                                     # Playwright com axe (refaz o build; preview em 5191)
 pnpm audit --prod --audit-level high         # auditoria de dependências
 ```
 
