@@ -56,13 +56,19 @@ cumpre; ele não muda nenhuma.
   E2E contra ela, push com tag = SHA completo (nunca `latest`; mantém as 5 mais
   recentes), SSH na VM: `pull`, `up -d`, e confere `https://<domínio>/` = 200 com o
   header CSP. Falha para o deploy, sem rollback automático.
+- **Login do GHCR (`fahledu/0025`):** a imagem `ghcr.io/fahledu/jorge-app` é
+  pública. O pull na VM é anônimo, sem login nem token; nenhum script nem passo manual
+  na VM faz `docker login` no GHCR, e o config do Docker do usuário de deploy não tem
+  `ghcr.io`. O único token do GHCR é o `GITHUB_TOKEN` do workflow (`packages: write`),
+  usado no push dentro do runner e nunca levado à VM. Pacote privado é mudança deste
+  ADR, e aí vale a regra inteira do `fahledu/0025`.
 - **Voltar versão** = deploy do SHA anterior.
 - **Sem backup:** não há dado no servidor; a imagem no GHCR e o git bastam. O
   `docs/OPERACAO.md` registra isso no lugar do teste de restauração.
 - **Monitoramento:** UptimeRobot em `https://<domínio>/` a cada 5 min (mesma conta da
   plataforma). Logs só de erro do Caddy, sem log de acesso.
-- **Segredos:** nenhum no servidor; no GitHub, só o acesso SSH do Environment
-  `production` e o token do GHCR do próprio workflow.
+- **Segredos:** nenhum no servidor (nem token do GHCR); no GitHub, só o acesso SSH do
+  Environment `production` e o `GITHUB_TOKEN` do próprio workflow para o push.
 
 ### Dependências na plataforma (nota de handoff, não muda este repositório)
 - Linha do projeto na tabela de orçamento de `fahledu/0019` (32 MB), na lista de
@@ -77,6 +83,9 @@ cumpre; ele não muda nenhuma.
 - Phaser cria textura por `data:` → permitido por `img-src`; um `eval` → bloqueado pela
   CSP e o E2E falha.
 - Deploy de SHA que não está na `main` → o workflow recusa.
+- Alguém roda `docker login ghcr.io` na VM para o Jorge → fora da regra (`fahledu/0025`):
+  o pull é anônimo, e um `docker logout` depois apagaria o login de outro projeto no
+  mesmo config.
 
 ## Descartado
 - **Cloudflare Pages, GitHub Pages, Netlify:** mais simples para estático, mas fora do
