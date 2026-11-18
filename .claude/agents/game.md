@@ -34,6 +34,7 @@ Visual e textos da interface: `docs/DESIGN.md` e o tema do código para onde ele
 | Assets de terceiros e licença | 0008 |
 | Interface, controles e acessibilidade | 0009 |
 | Testes e qualidade | 0010 |
+| Arquivos `.tmj` escritos por agente: formato, prévia e conferência (ao mexer em `levels/`) | 0012 |
 
 ## Como trabalhar
 
