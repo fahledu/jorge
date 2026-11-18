@@ -68,6 +68,7 @@ Alternativas consideradas e por que não.
 | [0009](0009-interface-controles-e-acessibilidade.md) | Interface, controles e acessibilidade | Aceito |
 | [0010](0010-testes-e-qualidade.md) | Testes e qualidade | Aceito |
 | [0011](0011-hospedagem-ci-e-deploy.md) | Hospedagem, CI e deploy | Aceito |
+| [0012](0012-arquivos-tmj-autoria-por-agente-e-validade.md) | Arquivos .tmj: autoria por agente e validade | Aceito |
 
 ## Decisões ainda sem ADR
 

@@ -19,6 +19,7 @@
       "!**/coverage",
       "!**/playwright-report",
       "!**/test-results",
+      "!.preview",
       "!**/*.md",
       "!**/*.yml",
       "!**/*.yaml"
@@ -44,6 +45,14 @@
       "style": {
         "noNonNullAssertion": "error",
         "useImportType": "error"
+      },
+      "correctness": {
+        "useImportExtensions": {
+          "level": "error",
+          "options": {
+            "forceJsExtensions": false
+          }
+        }
       }
     }
   },

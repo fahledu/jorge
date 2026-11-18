@@ -18,7 +18,9 @@
     "test": "vitest run",
     "test:quiet": "vitest run --reporter=agent",
     "test:coverage": "vitest run --coverage",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "levels:build": "node scripts/build-levels.ts",
+    "levels:preview": "node scripts/level-preview.ts"
   },
   "dependencies": {
     "phaser": "3.90.0",

@@ -14,7 +14,9 @@
     "isolatedModules": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true
   },
   "include": ["src", "scripts/**/*.ts", "e2e", "infra/**/*.ts", "*.config.ts"]
 }

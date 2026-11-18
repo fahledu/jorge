@@ -56,9 +56,11 @@ levels/
   chunks/                 # trechos do Tiled (.tmj)
   manual/                 # fases feitas à mão
   generated/              # 100 fases geradas (versionadas; não ler)
+  README.md               # paleta de tiles e comandos de fases
 scripts/                  # build e checagem de fases, check-docs, check-secrets
 assets/kenney/            # cópia dos arquivos usados do pack (protegida)
 e2e/                      # Playwright
+.preview/                 # prévias em PNG das fases (fora do git)
 infra/                    # Dockerfile, compose, Caddyfile, deploy
 docs/
   adr/                    # decisões (fonte única das regras)
@@ -84,7 +86,8 @@ pnpm dev                                     # jogo em http://localhost:5190 (Vi
 pnpm test                                    # todos os testes (Vitest)
 pnpm exec vitest run src/domain/score.test.ts   # um arquivo (-t "<nome>" para um teste)
 pnpm lint && pnpm typecheck                  # Biome e tsc
-pnpm levels:build                            # gera as 100 fases em levels/generated/ (nasce no 1g)
+pnpm levels:build                            # gera as fases em levels/generated/ (nasce no 1b; gerador no 1g)
+pnpm levels:preview <arquivo>                # prévia em PNG em .preview/ (--sheet: folha numerada)
 pnpm levels:check                            # confere as 100 fases (nasce no 1g)
 pnpm build                                   # build de produção
 pnpm e2e                                     # Playwright com axe (refaz o build; preview em 5191)
@@ -104,6 +107,7 @@ pnpm audit --prod --audit-level high         # auditoria de dependências
 9. Menus em HTML sobre o canvas, WCAG 2.2 AA; resolução 480×270 em escala inteira; teclado e toque com os mesmos comandos; opção de reduzir efeitos; pt-BR. (ADR 0009)
 10. `domain` com cobertura ≥ 95%; `levels:check` no CI; E2E com axe e sem violação de CSP. (ADR 0010)
 11. Caddy estático na VM da plataforma fahledu, sem cookie nem rastreio, CSP estrita, deploy manual por SHA. (ADR 0011)
+12. Trechos e fases manuais escritos por agente no subconjunto do Tiled conferido pelo build. (ADR 0012)
 
 Antes de mexer numa área, leia o ADR dela.
 

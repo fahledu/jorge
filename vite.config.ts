@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import { SECURITY_HEADERS } from "./infra/csp";
+import { SECURITY_HEADERS } from "./infra/csp.ts";
 
 export default defineConfig({
   server: { port: 5190, strictPort: true },

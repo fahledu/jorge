@@ -1,9 +1,10 @@
 import Phaser from "phaser";
-import { computeScale, GAME_HEIGHT, GAME_WIDTH } from "../domain/scale";
-import { EmptyScene } from "./scenes/empty-scene";
+import { computeScale, GAME_HEIGHT, GAME_WIDTH } from "../domain/scale.ts";
+import { loadLevel } from "./levels.ts";
+import { LevelScene } from "./scenes/level-scene.ts";
 
 export interface GameHandle {
-  /** Starts the placeholder scene and shows the canvas. */
+  /** Loads level 1 (on demand, ADR 0005), starts it and shows the canvas. */
   start(): void;
 }
 
@@ -12,7 +13,11 @@ export interface GameHandle {
  * by `computeScale` on every resize (ADR 0009), not by Phaser's FIT mode, which is
  * always fractional.
  */
-export function createGame(parent: HTMLElement, label: string): GameHandle {
+export function createGame(
+  parent: HTMLElement,
+  label: string,
+  levelLabel: (levelNumber: number) => string,
+): GameHandle {
   const game = new Phaser.Game({
     type: Phaser.AUTO,
     parent,
@@ -53,9 +58,19 @@ export function createGame(parent: HTMLElement, label: string): GameHandle {
     start() {
       if (started) return;
       started = true;
-      parent.hidden = false;
-      game.scene.add("empty", EmptyScene, true);
-      fit();
+      loadLevel(1).then(
+        (level) => {
+          parent.hidden = false;
+          game.canvas.setAttribute("aria-label", levelLabel(level.info.levelNumber));
+          game.scene.add("level", LevelScene, true, { level });
+          fit();
+        },
+        (error: unknown) => {
+          // No error screen until item 1j: the failure goes to the console (plan 1b).
+          // biome-ignore lint/suspicious/noConsole: the only report of a failed load in 1b
+          console.error("could not load level 1", error);
+        },
+      );
     },
   };
 }

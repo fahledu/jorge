@@ -57,11 +57,13 @@ que terminou").
   `phaser` no `domain` (conferido e desfeito).
 
 ### 1b. Formato de trecho e fase manual
-- **Escopo:** leitura de `.tmj` no `domain` (camadas, spawns, propriedades), build de
-  fases que normaliza `levels/manual/001.tmj` para `levels/generated/001.json` com
-  tileset embutido; carregamento sob demanda da fase no jogo; fase 1 (tutorial) feita
-  no Tiled e desenhada com fundo, terreno e câmera seguindo um ponto. Sem jogador.
-- **ADRs:** 0004, 0005, 0008.
+- **Escopo:** leitura e validação de `.tmj` no `domain` (camadas, spawns,
+  propriedades), `pnpm levels:build` só com as fases manuais, normalizando
+  `levels/manual/001.tmj` para `levels/generated/001.json` com tileset embutido; prévia
+  em PNG (`pnpm levels:preview`) para o agente ver o que desenhou; carregamento sob
+  demanda da fase no jogo; fase 1 (tutorial) escrita por um agente no formato do Tiled
+  e desenhada com fundo, terreno e câmera seguindo um ponto. Sem jogador.
+- **ADRs:** 0004, 0005, 0008, 0012.
 - **Depende de:** 1a.
 - **Pronto quando:** a fase 1 aparece na tela com a escala certa em 1920×1080 e em
   844×390; o build de fases é determinístico (dois builds, mesmo arquivo).
@@ -112,10 +114,11 @@ que terminou").
   validador e abrem no jogo; `levels:check` falha com um arquivo gerado editado à mão.
 
 ### 1h. Biblioteca de trechos e ajuste da curva
-- **Escopo:** pelo menos 30 trechos no Tiled, 3 ou mais por dificuldade de 1 a 10, com
-  terreno variado (grama, terra, neve, areia) e spawns; ajuste dos números da curva
-  pelo teste à mão (mudança de número vai para o ADR 0005).
-- **ADRs:** 0005, 0008.
+- **Escopo:** pelo menos 30 trechos escritos por um agente no formato do Tiled, 3 ou
+  mais por dificuldade de 1 a 10, com terreno variado (grama, terra, neve, areia) e
+  spawns; ajuste dos números da curva pelo teste à mão (mudança de número vai para o
+  ADR 0005).
+- **ADRs:** 0005, 0008, 0012.
 - **Depende de:** 1g.
 - **Pronto quando:** fases 1, 10, 50 e 100 jogadas à mão até a bandeira pelo roteiro;
   as 100 fases regeneradas passam no `levels:check`.
@@ -214,3 +217,4 @@ sai desta lista, e o descartado também.
 - Conquistas e estatísticas (fora do MVP)
 - Fonte pixel com licença OFL nos títulos dos menus (fora do MVP, ADR 0009)
 - Outros idiomas (fora do MVP)
+- Fundo diferente por fase ou por tier (fora de escopo do plano 1b)

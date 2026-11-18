@@ -1,5 +1,5 @@
-import type { EventBus } from "../game/events";
-import { strings } from "./strings";
+import type { EventBus } from "../game/events.ts";
+import { strings } from "./strings.ts";
 
 function element<K extends keyof HTMLElementTagNameMap>(
   tag: K,

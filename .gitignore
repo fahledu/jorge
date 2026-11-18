@@ -48,3 +48,6 @@ desktop.ini
 
 # Pack da Kenney: só fonte local; o que o jogo usa fica em assets/kenney/ (ADR 0008)
 kenney_pixel-platformer/
+
+# Prévia de fases em PNG (pnpm levels:preview, ADR 0012)
+.preview/

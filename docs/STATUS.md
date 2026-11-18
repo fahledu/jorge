@@ -6,7 +6,7 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
 
 - **Última atualização:** 2026-11-18
 - **Fase:** Fase 1 (MVP).
-- **Próximo passo:** item **1b** do roadmap: `/feature 1b`.
+- **Próximo passo:** item **1c** do roadmap: `/feature 1c`.
 
 ## Feito
 
@@ -20,6 +20,14 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
   tokens em `src/ui/tokens.css`, assets em `assets/kenney/` com teste de hashes (pasta do
   pack fora do git), E2E com axe e CSP, CI `stack.yml`, versões no ADR 0003,
   `docs/ROTEIRO-TESTE.md`.
+- 1b: formato de trecho e fase manual (ADR 0012, autoria por agente). Leitores de `.tsx`
+  e `.tmj` no `domain`, `pnpm levels:build` (determinístico) e `pnpm levels:preview`,
+  fase 1 escrita por agente em `levels/manual/001.tmj`, carregada sob demanda num chunk
+  próprio, com fundo em parallax e câmera percorrendo a fase; imports com `.ts` (Node
+  roda os scripts sem dependência nova). Desvios do plano: `TmjMap.chunk` no lugar de
+  `properties`; `readLevelInfo` no `domain` valida a fase carregada; o fundo do pack é
+  opaco e cobre o céu do token (que aparece só antes de a fase carregar); a faixa de
+  morros está fixa para chão na linha 12 até haver fases com outra altura (1g).
 
 ## Limites aceitos
 
@@ -44,7 +52,6 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
 - Confirmar: sem analytics nem rastreio de qualquer tipo (suposição do ADR 0007); a
   hipótese do MVP é medida por teste com 5 pessoas (`docs/ROADMAP.md`).
 - Quem recruta e acompanha o teste com 5 pessoas depois do deploy.
-- Quem desenha os trechos do item 1h no Tiled: o dono ou um agente gerando o JSON.
 - Sons: ficam para depois; quando entrarem, de qual pack CC0.
 - Nota de handoff para a plataforma (orçamento de memória, nomes, DNS; ADR 0011): a
   escrever pela sessão principal antes do item 1l.

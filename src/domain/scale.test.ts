@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeScale, GAME_HEIGHT, GAME_WIDTH } from "./scale";
+import { computeScale, GAME_HEIGHT, GAME_WIDTH } from "./scale.ts";
 
 describe("computeScale", () => {
   it("fills 1920×1080 at exactly 4×", () => {

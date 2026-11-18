@@ -4,4 +4,5 @@ export const strings = {
   tagline: "100 fases. Pule nos inimigos, pegue moedas, chegue à bandeira.",
   play: "Jogar",
   saveNote: "Seu progresso fica salvo neste navegador.",
+  levelLabel: (levelNumber: number): string => `Fase ${levelNumber}`,
 } as const;
