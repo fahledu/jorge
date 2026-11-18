@@ -3,7 +3,7 @@
 Orientação para o Claude Code neste repositório. É lido em toda sessão: mantenha-o
 curto, como índice. O detalhe mora nos ADRs.
 
-# Jorge (nome provisório)
+# Jorge
 
 > **Para retomar o trabalho, leia `docs/STATUS.md`** (fase atual, próximo passo, pendências).
 

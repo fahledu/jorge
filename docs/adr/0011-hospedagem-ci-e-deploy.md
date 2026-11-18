@@ -16,12 +16,13 @@ cumpre; ele não muda nenhuma.
 ## Decisão
 
 ### Nomes (padrão `fahledu/0018`)
-- `<projeto>` = `jorge` (**provisório**, questão em aberto). Projeto Compose `jorge`,
+- `<projeto>` = `jorge` (nome do jogo: Jorge). Projeto Compose `jorge`,
   pasta `/opt/jorge`, repositório `fahledu/jorge`, imagem `ghcr.io/fahledu/jorge-app`,
   alias `jorge-app` na `platform-edge`, domínio `jorge.fahledu.com.br`, site
   `jorge.caddy`.
-- **O nome final é decidido antes do primeiro deploy:** o save mora no `localStorage`
-  da origem (ADR 0007); trocar o domínio depois faz os jogadores perderem o progresso.
+- **O nome e o domínio não mudam depois do primeiro deploy:** o save mora no
+  `localStorage` da origem (ADR 0007), e trocar o domínio faz os jogadores perderem o
+  progresso.
 
 ### Contêiner
 - Imagem multi-stage: build com Node (ADR 0003) e `--frozen-lockfile`; final com o

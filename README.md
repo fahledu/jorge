@@ -1,4 +1,4 @@
-# Jorge (nome provisório)
+# Jorge
 
 Jogo de plataforma 2D para o navegador: 100 fases que ficam mais difíceis aos poucos,
 pontos por inimigos derrotados, moedas e fases concluídas, e progresso e recordes

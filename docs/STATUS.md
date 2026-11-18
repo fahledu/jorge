@@ -32,8 +32,6 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
 
 ## Questões em aberto
 
-- Nome final do jogo ("jorge" é provisório). Precisa estar decidido antes do item 1l:
-  o domínio define onde o save fica (ADR 0007, ADR 0011).
 - Confirmar: sem analytics nem rastreio de qualquer tipo (suposição do ADR 0007); a
   hipótese do MVP é medida por teste com 5 pessoas (`docs/ROADMAP.md`).
 - Quem recruta e acompanha o teste com 5 pessoas depois do deploy.

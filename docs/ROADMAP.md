@@ -149,13 +149,12 @@ que terminou").
   fase 50 com média de 55 fps ou mais nele.
 
 ### 1l. Deploy em produção
-- **Escopo:** Dockerfile, `Caddyfile` com headers e cache, compose, `jorge.caddy` (com o
-  nome final), workflow de deploy, monitoramento, nota de handoff para a plataforma
+- **Escopo:** Dockerfile, `Caddyfile` com headers e cache, compose, `jorge.caddy`, workflow de deploy, monitoramento, nota de handoff para a plataforma
   (orçamento de memória, nomes, DNS), `docs/OPERACAO.md` (deploy, voltar versão,
   onde ver logs e alertas, e o registro de que não há backup porque não há dado no
   servidor, ADR 0011).
 - **ADRs:** 0011.
-- **Depende de:** 1k; nome final do jogo decidido; nota de handoff aceita na plataforma.
+- **Depende de:** 1k; nota de handoff aceita na plataforma.
 - **Pronto quando:** deploy de um SHA feito pelo workflow e voltado para o SHA anterior
   pelo procedimento do `docs/OPERACAO.md`; headers e CSP conferidos no domínio; o
   critério "MVP entregue quando" cumprido.

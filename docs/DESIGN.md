@@ -131,4 +131,4 @@ e os botões ficam em duas colunas.
   progresso? As fases liberadas e os recordes deste navegador serão perdidos. Isso não
   pode ser desfeito."
 - **Números:** `Intl.NumberFormat('pt-BR')` ("12.340 pontos"); tempo como "1:05,3".
-- **Nome do jogo:** provisório até a questão em aberto ser resolvida (`docs/STATUS.md`).
+- **Nome do jogo:** Jorge.
