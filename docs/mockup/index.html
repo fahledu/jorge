@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup do jogo</title>
+<style>
+/* Tokens: mesmos nomes do docs/DESIGN.md */
+:root{
+  --color-bg:#141a33; --color-surface:#232c52; --color-surface-2:#2e3966; --color-overlay:#141a33cc;
+  --color-text:#f5f6fa; --color-muted:#b4bcd9; --color-primary:#f7c948; --color-primary-hover:#ffd966;
+  --color-on-primary:#1b1b1b; --color-danger:#c03a35; --color-danger-text:#ff8a80; --color-success:#6fdc8c;
+  --color-border:#7a87b8; --color-focus:#ffffff; --color-sky:#5aa9e6;
+  --font-ui:system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-num:ui-monospace,"Cascadia Mono",Consolas,monospace;
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-6:24px; --space-8:32px;
+  --radius-sm:4px; --radius-md:8px; --border-w:2px; --shadow-panel:0 4px 0 #0b0f20;
+  --panel-max:560px; --touch-size:64px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--color-bg);color:var(--color-text);font:400 16px/1.5 var(--font-ui)}
+.mock-bar{background:#0b0f20;border-bottom:var(--border-w) solid var(--color-surface-2);padding:var(--space-3) var(--space-4)}
+.mock-bar strong{color:var(--color-primary)}
+.mock-bar p{margin:var(--space-1) 0;font-size:14px;color:var(--color-muted)}
+.mock-nav{display:flex;flex-wrap:wrap;gap:var(--space-1);padding:var(--space-2) var(--space-4);background:#0b0f20;position:sticky;top:0;z-index:10}
+.mock-nav button{font:600 14px var(--font-ui);background:var(--color-surface);color:var(--color-text);border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:6px 10px;cursor:pointer}
+.mock-nav button[aria-current=true]{background:var(--color-primary);color:var(--color-on-primary);border-color:var(--color-primary)}
+main{padding:var(--space-4);max-width:1000px;margin:0 auto}
+.screen{display:none}.screen.on{display:block}
+.screen>h2{font-size:14px;color:var(--color-muted);font-weight:600;margin:0 0 var(--space-2)}
+.note{font-size:14px;color:var(--color-muted);margin:var(--space-2) 0 var(--space-6)}
+
+/* Palco do jogo: 16:9, canvas 480x270 escalado sem suavização */
+.stage{position:relative;width:100%;max-width:960px;aspect-ratio:16/9;margin:0 auto;overflow:hidden;background:var(--color-sky);border-radius:var(--radius-sm)}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
+.stage.dim canvas{filter:none}
+.veil{position:absolute;inset:0;background:var(--color-overlay);display:flex;align-items:center;justify-content:center;padding:var(--space-4);overflow:auto}
+.stage.phone{max-width:844px;aspect-ratio:844/390;background:var(--color-bg)}
+
+/* Componentes base */
+.panel{background:var(--color-surface);border:var(--border-w) solid #0b0f20;border-radius:var(--radius-md);box-shadow:var(--shadow-panel);padding:var(--space-6);width:100%;max-width:var(--panel-max);max-height:100%;overflow:auto}
+.panel.wide{max-width:820px}
+.panel h1,.panel h3{margin:0 0 var(--space-4);font-size:28px;line-height:1.2;font-weight:800}
+.display{font-size:40px;line-height:1.1;font-weight:800;margin:0;color:var(--color-primary);text-shadow:0 3px 0 #0b0f20;letter-spacing:.02em}
+.muted{color:var(--color-muted)} .small{font-size:14px;line-height:1.4}
+.stack{display:flex;flex-direction:column;gap:var(--space-2)}
+.row{display:flex;flex-wrap:wrap;gap:var(--space-2)}
+.btn{font:700 16px/1.2 var(--font-ui);border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);border:var(--border-w) solid transparent;cursor:pointer;box-shadow:var(--shadow-panel);min-height:48px;text-align:center}
+.btn:active,.btn.is-pressed{transform:translateY(2px);box-shadow:none}
+.btn:focus-visible,.btn.is-focus,.switch:focus-visible,.card:focus-visible,.opt input:focus-visible+span{outline:3px solid var(--color-focus);outline-offset:2px;box-shadow:0 0 0 7px var(--color-bg)}
+.btn-primary{background:var(--color-primary);color:var(--color-on-primary)}
+.btn-primary:hover,.btn-primary.is-hover{background:var(--color-primary-hover)}
+.btn-secondary{background:var(--color-surface-2);color:var(--color-text);border-color:var(--color-border)}
+.btn-danger{background:var(--color-danger);color:#fff;border-color:var(--color-danger-text)}
+.btn[aria-disabled=true]{opacity:.5;cursor:not-allowed}
+.btn[aria-busy=true]{cursor:progress}
+.alert{background:var(--color-surface-2);border-left:4px solid var(--color-primary);padding:var(--space-3) var(--space-4);border-radius:var(--radius-sm);font-size:14px;margin:0 0 var(--space-4)}
+.alert.err{border-left-color:var(--color-danger-text)}
+.alert strong{display:block;font-size:16px}
+.badge{display:inline-block;background:var(--color-primary);color:var(--color-on-primary);font-weight:800;font-size:20px;padding:var(--space-1) var(--space-4);border-radius:var(--radius-md);box-shadow:var(--shadow-panel);transform:rotate(-2deg)}
+.ok{color:var(--color-success)}
+.num{font-family:var(--font-num)}
+.switch-row{display:flex;justify-content:space-between;align-items:center;gap:var(--space-4);padding:var(--space-3) 0;border-bottom:1px solid var(--color-surface-2)}
+.switch{width:56px;height:32px;border-radius:16px;background:var(--color-surface-2);border:var(--border-w) solid var(--color-border);position:relative;cursor:pointer;flex:none}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--color-muted)}
+.switch[aria-checked=true]{background:var(--color-primary);border-color:var(--color-primary)}
+.switch[aria-checked=true]::after{left:27px;background:var(--color-on-primary)}
+.opts{display:flex;gap:var(--space-1);border:0;padding:0;margin:0}
+.opt{position:relative}
+.opt input{position:absolute;opacity:0}
+.opt span{display:block;padding:var(--space-2) var(--space-3);background:var(--color-surface-2);border:var(--border-w) solid var(--color-border);border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer}
+.opt input:checked+span{background:var(--color-primary);color:var(--color-on-primary);border-color:var(--color-primary)}
+.tabs{display:flex;gap:var(--space-1);margin-bottom:var(--space-4);flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:var(--space-2)}
+.card{background:var(--color-surface-2);border:var(--border-w) solid var(--color-border);border-radius:var(--radius-sm);padding:var(--space-2);text-align:center;color:var(--color-text);font:inherit;cursor:pointer;min-height:64px}
+.card b{display:block;font-size:20px;line-height:1.3}
+.card small{display:block;font-size:12px;color:var(--color-muted);font-family:var(--font-num)}
+.card.done{border-color:var(--color-success)} .card.done small{color:var(--color-success)}
+.card.next{border-color:var(--color-primary);box-shadow:inset 0 0 0 2px var(--color-primary)}
+.card.locked{opacity:.55;cursor:not-allowed}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:var(--space-2);text-align:right} th:first-child,td:first-child{text-align:left}
+th{color:var(--color-muted);font-weight:600;border-bottom:var(--border-w) solid var(--color-surface-2)}
+tbody tr:nth-child(odd){background:var(--color-surface-2)}
+td{font-family:var(--font-num)}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-2);margin-bottom:var(--space-4)}
+.stat{background:var(--color-surface-2);border-radius:var(--radius-sm);padding:var(--space-3);text-align:center}
+.stat b{display:block;font:800 20px var(--font-num);color:var(--color-primary)}
+.stat span{font-size:14px;color:var(--color-muted)}
+.breakdown{width:100%;margin-bottom:var(--space-4)}
+.breakdown td{background:none;padding:var(--space-1) var(--space-2)}
+.breakdown td:first-child{font-family:var(--font-ui)}
+.breakdown tr.total td{border-top:var(--border-w) solid var(--color-border);font-weight:800;font-size:20px;color:var(--color-primary)}
+.empty{text-align:center;padding:var(--space-6) 0}
+.empty canvas{width:72px;height:72px;image-rendering:pixelated}
+.progress{height:16px;background:var(--color-surface-2);border:var(--border-w) solid var(--color-border);border-radius:var(--radius-sm);overflow:hidden}
+.progress i{display:block;height:100%;width:62%;background:var(--color-primary)}
+
+/* Botões de toque (DOM sobre o canvas) */
+.touch{position:absolute;width:var(--touch-size);height:var(--touch-size);border-radius:50%;background:#141a3399;border:var(--border-w) solid #f5f6fab3;color:var(--color-text);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;user-select:none}
+.touch.pressed{background:#f7c94899}
+.touch.left{left:24px;bottom:24px}.touch.right{left:104px;bottom:24px}.touch.jump{right:24px;bottom:24px;width:80px;height:80px}
+.touch.pause{right:16px;top:44px;width:48px;height:48px;font-size:18px;border-radius:var(--radius-md)}
+.toast{position:absolute;left:50%;top:40%;transform:translateX(-50%);background:var(--color-surface);border:var(--border-w) solid #0b0f20;box-shadow:var(--shadow-panel);border-radius:var(--radius-md);padding:var(--space-3) var(--space-6);text-align:center}
+.rotate{position:absolute;inset:0;background:var(--color-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:var(--space-6)}
+.phone-portrait{width:260px;height:520px;margin:0 auto;border:8px solid #0b0f20;border-radius:28px;position:relative;overflow:hidden}
+
+/* Design system */
+.ds h3{font-size:20px;margin:var(--space-6) 0 var(--space-2)}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--space-2)}
+.sw{border:1px solid var(--color-surface-2);border-radius:var(--radius-sm);overflow:hidden;font-size:12px}
+.sw i{display:block;height:48px}
+.sw div{padding:var(--space-2);background:var(--color-surface)}
+.ds-box{background:var(--color-surface);border-radius:var(--radius-md);padding:var(--space-6)}
+@media (max-width:640px){.grid{grid-template-columns:repeat(4,1fr)}.summary{grid-template-columns:1fr}.display{font-size:32px}}
+@media (max-height:600px){.panel{padding:var(--space-4)}}
+</style>
+</head>
+<body>
+<header class="mock-bar">
+  <strong>Mockup, não é código de produção.</strong> 18/11/2026. Telas da Fase 1 (MVP) com dados fictícios. Arte: Kenney Pixel Platformer (CC0).
+  <p>Fica para depois: chefes ou fases especiais a cada 10, mais inimigos e mecânicas (chaves e portas, blocos "?" com poderes, água, escadas, plataformas móveis), checkpoint no meio da fase, sons, gamepad, PWA, vários jogadores no mesmo navegador, exportar e importar o save, remapear teclas, conquistas, outros idiomas; Fase 2 (proposta): ranking global e save na nuvem.</p>
+  <p>O nome "Jorge" é provisório. O canvas abaixo imita a resolução interna 480×270 ampliada sem suavização.</p>
+</header>
+<nav class="mock-nav" aria-label="Telas do mockup" id="nav"></nav>
+<main>
+
+<section class="screen" id="s-loading" data-title="Carregando">
+  <h2>Carregando (antes dos assets)</h2>
+  <div class="stage" style="background:var(--color-bg)"><div class="veil" style="background:none">
+    <div class="panel" style="text-align:center">
+      <p class="display">Jorge</p>
+      <p class="muted">Carregando…</p>
+      <div class="progress" role="progressbar" aria-valuenow="62" aria-valuemin="0" aria-valuemax="100" aria-label="Carregando"><i></i></div>
+    </div></div></div>
+</section>
+
+<section class="screen" id="s-title" data-title="Título">
+  <h2>Título (com progresso salvo)</h2>
+  <div class="stage"><canvas data-scene="title" width="480" height="270"></canvas>
+    <div class="veil" style="background:#141a3366">
+      <div class="panel" style="text-align:center;max-width:400px">
+        <p class="display">Jorge</p>
+        <p class="muted small" style="margin:var(--space-1) 0 var(--space-6)">100 fases. Pule nos inimigos, pegue moedas, chegue à bandeira.</p>
+        <div class="stack">
+          <button class="btn btn-primary is-focus">Continuar: fase 13</button>
+          <button class="btn btn-secondary">Escolher fase</button>
+          <div class="row" style="justify-content:center">
+            <button class="btn btn-secondary" style="flex:1">Recordes</button>
+            <button class="btn btn-secondary" style="flex:1">Configurações</button>
+          </div>
+          <div class="row" style="justify-content:center">
+            <button class="btn btn-secondary" style="flex:1">Créditos</button>
+            <button class="btn btn-secondary" style="flex:1">Tela cheia</button>
+          </div>
+        </div>
+        <p class="muted small" style="margin:var(--space-4) 0 0">Seu progresso fica salvo neste navegador.</p>
+      </div></div></div>
+  <p class="note">Primeira visita: o botão principal é "Jogar" e começa a fase 1 (tutorial). Teclado: Tab/setas, Enter, Esc.</p>
+</section>
+
+<section class="screen" id="s-select" data-title="Escolher fase">
+  <h2>Escolher fase</h2>
+  <div class="stage"><canvas data-scene="title" width="480" height="270"></canvas>
+    <div class="veil"><div class="panel wide">
+      <h1>Escolher fase</h1>
+      <div class="tabs" role="tablist" aria-label="Grupos de fases">
+        <button class="btn btn-primary" role="tab" aria-selected="true">1–20</button>
+        <button class="btn btn-secondary" role="tab">21–40</button>
+        <button class="btn btn-secondary" role="tab">41–60</button>
+        <button class="btn btn-secondary" role="tab">61–80</button>
+        <button class="btn btn-secondary" role="tab">81–100</button>
+      </div>
+      <div class="grid" id="levelGrid"></div>
+      <div class="row" style="margin-top:var(--space-4)"><button class="btn btn-secondary">Voltar</button></div>
+    </div></div></div>
+  <p class="note">Concluída (verde, com o recorde), próxima liberada (amarela), bloqueada (cadeado, não clicável). A dificuldade sobe a cada 10 fases.</p>
+</section>
+
+<section class="screen" id="s-game" data-title="Jogo (teclado)">
+  <h2>Jogo no notebook (teclado)</h2>
+  <div class="stage"><canvas data-scene="game" width="480" height="270" aria-label="Fase 13"></canvas></div>
+  <p class="note">HUD no canvas, numa faixa escura: corações, moedas, pontos da tentativa, tempo e fase. Setas ou A/D andam; Espaço, W ou ↑ pulam; Esc ou P pausam.</p>
+</section>
+
+<section class="screen" id="s-touch" data-title="Jogo (celular)">
+  <h2>Jogo no celular em paisagem (toque)</h2>
+  <div class="stage phone"><canvas data-scene="game" width="480" height="270" style="object-fit:contain;background:var(--color-bg)"></canvas>
+    <div class="touch left" aria-label="Esquerda">◀</div>
+    <div class="touch right pressed" aria-label="Direita">▶</div>
+    <div class="touch jump" aria-label="Pular">▲</div>
+    <div class="touch pause" aria-label="Pausar">❚❚</div>
+  </div>
+  <p class="note">Botões aparecem sozinhos em tela de toque (configurável). "Direita" está pressionado. Alvos de 64 px (pular 80 px).</p>
+</section>
+
+<section class="screen" id="s-dead" data-title="Tentativa perdida">
+  <h2>Tentativa perdida (caiu no buraco ou acabaram os corações)</h2>
+  <div class="stage"><canvas data-scene="game" width="480" height="270"></canvas>
+    <div class="toast" role="status"><strong style="font-size:20px">Ops! Você caiu.</strong><br><span class="muted small">Recomeçando a fase 13…</span></div>
+  </div>
+  <p class="note">Mensagem curta (1,5 s) e a fase recomeça do início com 3 corações. Sem vidas, sem fim de jogo; os pontos da tentativa somem.</p>
+</section>
+
+<section class="screen" id="s-pause" data-title="Pausa">
+  <h2>Pausa</h2>
+  <div class="stage"><canvas data-scene="game" width="480" height="270"></canvas>
+    <div class="veil"><div class="panel" style="max-width:380px">
+      <h1>Pausa</h1>
+      <p class="muted small" style="margin-top:-8px">Fase 13 · 0:42,8 · 1.340 pontos</p>
+      <div class="stack">
+        <button class="btn btn-primary is-focus">Continuar</button>
+        <button class="btn btn-secondary">Recomeçar fase</button>
+        <button class="btn btn-secondary">Configurações</button>
+        <button class="btn btn-secondary">Tela cheia</button>
+        <button class="btn btn-secondary">Sair da fase</button>
+      </div>
+      <p class="muted small" style="margin:var(--space-3) 0 0">Sair ou recomeçar perde os pontos desta tentativa.</p>
+    </div></div></div>
+  <p class="note">Abre com Esc/P, com o botão de pausa ou sozinha quando a aba perde o foco. O relógio para.</p>
+</section>
+
+<section class="screen" id="s-done" data-title="Fase concluída">
+  <h2>Fase concluída (bateu o recorde)</h2>
+  <div class="stage"><canvas data-scene="flag" width="480" height="270"></canvas>
+    <div class="veil"><div class="panel" style="max-width:480px">
+      <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:var(--space-3)"><h1 class="ok" style="margin:0">Fase 13 concluída!</h1><span class="badge">Novo recorde!</span></div>
+      <table class="breakdown" aria-label="Pontos da fase">
+        <tbody>
+          <tr><td>Andadores derrotados (3 × 100)</td><td>300</td></tr>
+          <tr><td>Voadores derrotados (2 × 200)</td><td>400</td></tr>
+          <tr><td>Moedas (14 × 10)</td><td>140</td></tr>
+          <tr><td>Fase concluída (500 + 10 × 13)</td><td>630</td></tr>
+          <tr><td>Bônus de tempo (0:47 de 0:58)</td><td>110</td></tr>
+          <tr class="total"><td>Total</td><td>1.580</td></tr>
+        </tbody>
+      </table>
+      <p class="muted small" style="margin:0 0 var(--space-4)">Recorde anterior: 1.420 pontos. Melhor tempo: 0:47,2.</p>
+      <div class="row"><button class="btn btn-primary is-focus" style="flex:1.4">Próxima fase</button><button class="btn btn-secondary" style="flex:1">Jogar de novo</button><button class="btn btn-secondary" style="flex:1">Escolher fase</button></div>
+    </div></div></div>
+  <p class="note">Sem recorde, o selo não aparece e a linha mostra "Seu recorde: 1.580 pontos".</p>
+</section>
+
+<section class="screen" id="s-records" data-title="Recordes">
+  <h2>Recordes pessoais</h2>
+  <div class="stage"><canvas data-scene="title" width="480" height="270"></canvas>
+    <div class="veil"><div class="panel wide">
+      <h1>Seus recordes</h1>
+      <div class="summary">
+        <div class="stat"><b>13.895</b><span>pontos no total</span></div>
+        <div class="stat"><b>12 de 100</b><span>fases concluídas</span></div>
+        <div class="stat"><b>13</b><span>próxima fase</span></div>
+      </div>
+      <table><thead><tr><th>Fase</th><th>Pontos</th><th>Melhor tempo</th><th>Inimigos</th><th>Moedas</th><th>Vezes</th></tr></thead>
+      <tbody id="recRows"></tbody></table>
+      <div class="row" style="margin-top:var(--space-4)"><button class="btn btn-secondary">Voltar</button></div>
+    </div></div></div>
+  <p class="note">O total soma o melhor resultado de cada fase: repetir a fase 1 não infla o total. Os recordes ficam só neste navegador.</p>
+</section>
+
+<section class="screen" id="s-records-empty" data-title="Recordes (vazio)">
+  <h2>Recordes, estado vazio (primeira visita)</h2>
+  <div class="stage"><canvas data-scene="title" width="480" height="270"></canvas>
+    <div class="veil"><div class="panel">
+      <h1>Seus recordes</h1>
+      <div class="empty">
+        <canvas data-sprite="flag" width="18" height="18"></canvas>
+        <p style="font-size:20px;font-weight:700;margin:var(--space-2) 0">Nenhuma fase concluída ainda</p>
+        <p class="muted">Chegue à bandeira da fase 1 para ver seu primeiro recorde aqui.</p>
+        <button class="btn btn-primary">Jogar</button>
+      </div>
+    </div></div></div>
+</section>
+
+<section class="screen" id="s-settings" data-title="Configurações">
+  <h2>Configurações</h2>
+  <div class="stage"><canvas data-scene="title" width="480" height="270"></canvas>
+    <div class="veil"><div class="panel">
+      <h1>Configurações</h1>
+      <div class="switch-row">
+        <div><strong id="lbl-reduce">Reduzir efeitos</strong><br><span class="muted small">Sem tremor de tela nem piscadas.</span></div>
+        <button class="switch" role="switch" aria-checked="false" aria-labelledby="lbl-reduce"></button>
+      </div>
+      <div class="switch-row">
+        <div><strong id="lbl-touch">Botões de toque</strong><br><span class="muted small">Automático mostra em telas de toque.</span></div>
+        <fieldset class="opts" aria-labelledby="lbl-touch">
+          <label class="opt"><input type="radio" name="t" checked><span>Automático</span></label>
+          <label class="opt"><input type="radio" name="t"><span>Ligado</span></label>
+          <label class="opt"><input type="radio" name="t"><span>Desligado</span></label>
+        </fieldset>
+      </div>
+      <div class="switch-row" style="border:0">
+        <div><strong>Progresso</strong><br><span class="muted small">Fases liberadas e recordes deste navegador.</span></div>
+        <button class="btn btn-danger">Apagar progresso</button>
+      </div>
+      <div class="row" style="margin-top:var(--space-4)"><button class="btn btn-secondary">Voltar</button></div>
+    </div></div></div>
+  <p class="note">Cada mudança é salva na hora. "Reduzir efeitos" liga sozinho se o sistema pedir menos movimento.</p>
+</section>
+
+<section class="screen" id="s-confirm" data-title="Apagar progresso">
+  <h2>Apagar progresso: etapa 1 e etapa 2</h2>
+  <div class="stage"><canvas data-scene="title" width="480" height="270"></canvas>
+    <div class="veil"><div class="panel" role="alertdialog" aria-labelledby="c1t" style="max-width:420px">
+      <h1 id="c1t">Apagar todo o progresso?</h1>
+      <p>As fases liberadas e os recordes deste navegador serão perdidos. Isso não pode ser desfeito.</p>
+      <div class="row"><button class="btn btn-secondary is-focus" style="flex:1">Cancelar</button><button class="btn btn-danger" style="flex:1">Apagar</button></div>
+    </div></div></div>
+  <p class="note">Foco começa em "Cancelar". Depois de "Apagar", a etapa 2:</p>
+  <div class="stage"><canvas data-scene="title" width="480" height="270"></canvas>
+    <div class="veil"><div class="panel" role="alertdialog" aria-labelledby="c2t" style="max-width:420px">
+      <h1 id="c2t">Tem certeza?</h1>
+      <p>Você vai perder <strong>12 fases concluídas</strong> e <strong>13.895 pontos</strong> de recordes.</p>
+      <div class="row"><button class="btn btn-secondary is-focus" style="flex:1">Cancelar</button><button class="btn btn-danger" style="flex:1">Apagar tudo</button></div>
+    </div></div></div>
+  <p class="note">Depois: volta ao título com "Progresso apagado." e o botão "Jogar".</p>
+</section>
+
+<section class="screen" id="s-end" data-title="Fim de jogo">
+  <h2>Fim de jogo (concluiu a fase 100)</h2>
+  <div class="stage"><canvas data-scene="flag" data-phase="100" width="480" height="270"></canvas>
+    <div class="veil"><div class="panel" style="text-align:center;max-width:460px">
+      <p class="display" style="font-size:32px">Você zerou!</p>
+      <p>Concluiu as 100 fases com <strong class="num" style="color:var(--color-primary)">142.380</strong> pontos.</p>
+      <p class="muted small">Volte a qualquer fase para bater seus recordes.</p>
+      <div class="stack"><button class="btn btn-primary">Ver recordes</button><button class="btn btn-secondary">Créditos</button></div>
+    </div></div></div>
+</section>
+
+<section class="screen" id="s-credits" data-title="Créditos">
+  <h2>Créditos</h2>
+  <div class="stage"><canvas data-scene="title" width="480" height="270"></canvas>
+    <div class="veil"><div class="panel">
+      <h1>Créditos</h1>
+      <p><strong>Arte:</strong> Pixel Platformer, de Kenney (kenney.nl), licença CC0.</p>
+      <p><strong>Jogo:</strong> fahledu.</p>
+      <p class="muted small">Este jogo não usa cookies nem rastreia você. O progresso fica só neste navegador.</p>
+      <button class="btn btn-secondary">Voltar</button>
+    </div></div></div>
+</section>
+
+<section class="screen" id="s-errors" data-title="Erros e avisos">
+  <h2>Erro ao carregar</h2>
+  <div class="stage" style="background:var(--color-bg)"><div class="veil" style="background:none">
+    <div class="panel" role="alert">
+      <h1>Não foi possível carregar o jogo</h1>
+      <p>Confira a conexão e tente de novo. Se continuar, tente outro navegador atualizado.</p>
+      <button class="btn btn-primary" aria-busy="true">Carregando…</button>
+    </div></div></div>
+  <p class="note">Botão "Tentar de novo" mostrado no estado carregando, depois do clique.</p>
+
+  <h2>Avisos no título: save corrompido e navegador sem armazenamento</h2>
+  <div class="stage"><canvas data-scene="title" width="480" height="270"></canvas>
+    <div class="veil"><div class="panel">
+      <div class="alert err" role="alert"><strong>O progresso salvo não pôde ser lido</strong>Guardamos uma cópia e começamos um progresso novo.</div>
+      <div class="alert" role="status"><strong>O progresso não será salvo</strong>Este navegador não permite guardar dados (talvez esteja em janela anônima). Dá para jogar, mas tudo some ao fechar.</div>
+      <button class="btn btn-primary">Jogar</button>
+    </div></div></div>
+
+  <h2 style="margin-top:var(--space-6)">Celular em retrato</h2>
+  <div class="phone-portrait"><div class="rotate">
+    <p style="font-size:48px;margin:0">⟳</p>
+    <p style="font-size:20px;font-weight:700;margin:var(--space-2) 0">Gire o aparelho</p>
+    <p class="muted small">O jogo funciona com o celular deitado. Ele fica em pausa até lá.</p>
+  </div></div>
+</section>
+
+<section class="screen ds" id="s-ds" data-title="Design system">
+  <h2>Design system (tema único, docs/DESIGN.md)</h2>
+  <div class="ds-box">
+    <h3>Cores</h3><div class="swatches" id="swatches"></div>
+    <h3>Tipografia</h3>
+    <p class="display">Display 40/800</p>
+    <p style="font-size:28px;font-weight:800;margin:0">Título 28/800</p>
+    <p style="font-size:20px;font-weight:700;margin:0">Subtítulo 20/700</p>
+    <p style="margin:0">Corpo 16/400: pule nos inimigos, pegue moedas, chegue à bandeira.</p>
+    <p class="small muted" style="margin:0">Pequeno 14/400: ajuda e créditos.</p>
+    <p class="num" style="margin:0">Números: 12.340 pontos · 1:05,3</p>
+    <h3>Botões: normal, hover, foco, pressionado, desabilitado, carregando</h3>
+    <div class="row"><button class="btn btn-primary">Jogar</button><button class="btn btn-primary is-hover">Hover</button><button class="btn btn-primary is-focus">Foco</button><button class="btn btn-primary is-pressed">Pressionado</button><button class="btn btn-primary" aria-disabled="true">Desabilitado</button><button class="btn btn-primary" aria-busy="true">Carregando…</button></div>
+    <div class="row" style="margin-top:var(--space-2)"><button class="btn btn-secondary">Voltar</button><button class="btn btn-secondary is-focus">Foco</button><button class="btn btn-secondary is-pressed">Pressionado</button><button class="btn btn-secondary" aria-disabled="true">Desabilitado</button></div>
+    <div class="row" style="margin-top:var(--space-2)"><button class="btn btn-danger">Apagar progresso</button><button class="btn btn-danger is-focus">Foco</button><button class="btn btn-danger" aria-disabled="true">Desabilitado</button></div>
+    <h3>Interruptor e opções</h3>
+    <div class="row" style="align-items:center"><button class="switch" role="switch" aria-checked="false" aria-label="Desligado"></button><button class="switch" role="switch" aria-checked="true" aria-label="Ligado"></button>
+      <fieldset class="opts" aria-label="Exemplo"><label class="opt"><input type="radio" name="x" checked><span>Automático</span></label><label class="opt"><input type="radio" name="x"><span>Ligado</span></label><label class="opt"><input type="radio" name="x"><span>Desligado</span></label></fieldset></div>
+    <h3>Cartões de fase</h3>
+    <div class="grid" style="max-width:420px"><button class="card done"><b>12</b><small>1.510</small></button><button class="card next"><b>13</b><small>liberada</small></button><button class="card locked" aria-disabled="true"><b>14</b><small>🔒</small></button></div>
+    <h3>Avisos e selo</h3>
+    <div class="alert"><strong>Informação</strong>Texto do aviso.</div>
+    <div class="alert err"><strong>Erro</strong>O que aconteceu e o que fazer.</div>
+    <span class="badge">Novo recorde!</span>
+    <h3>Carregando</h3>
+    <div class="progress" style="max-width:320px"><i></i></div>
+    <h3>Botões de toque</h3>
+    <div style="position:relative;height:110px;background:var(--color-sky);border-radius:var(--radius-sm);max-width:420px">
+      <div class="touch left">◀</div><div class="touch right pressed">▶</div><div class="touch jump">▲</div></div>
+  </div>
+</section>
+</main>
+
+<script>
+// Só apresentação: navegação entre telas e desenho de cenas estáticas com os sprites do pack.
+const TILES="data:image/png;base64,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";
+const CHARS="data:image/png;base64,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";
+const BGS="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAABIBAMAAABSEeeBAAAABGdBTUEAALGPC/xhBQAAABtQTFRFNuN39Kxm+8l7f/Cly4FeLrCC////3/b1wuPoPFAu6wAAAZlJREFUWMPtlNuJwzAQRQXBBTiogaSCQCoQqAD/qAVHFSQdBJW985SdXWtjQ7JLYO7XtfHcM6OH3W2jjg2dG3IGMIABDGAAAxjAAJ8EuI6XmvDEU9qh39dk8ZR2cruaLN5x7ViTnnnO7CtBPWe6SlBPgBElQc88hvYoAainblG6NOLdDfqi4iuUr/BH6JdCDxA782fol0JPEDvz7oplrMsaf8A41n7uTxjH2s29Gzeqb8i19K2+lPJWQAbA/SMAXRreC0gptQG5BSkvApTWTr8bkHGwDQBmLBzTFwG6RBu9sAz/A8hyCf8G4EMNjuJ/3oM2YPGYwqsJEKPm+z54AXSPI7g2YMwL14CuB1AoNcZpBHAhEKBbBuTZgoj/DRBpAB4hMsB7GALz0rRA6PkZy5SgfgGQ8T1+Br17BAQcJPAEkO8xUwniO/odlVIJWT0A5vtAnWc5ANB7jDwCzwEsAMSUhDBIPhyjATemVILml5LvecJOH5CNquBpDoZ5BSQ3aD5uQZcqYK1iQ6khAxjAAAYwgAEMYAADsL4Ay2H2+fZv0pMAAAAASUVORK5CYII=";
+const load=s=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=s});
+
+const screens=[...document.querySelectorAll('.screen')];
+const nav=document.getElementById('nav');
+function show(id){screens.forEach(s=>s.classList.toggle('on',s.id===id));[...nav.children].forEach(b=>b.setAttribute('aria-current',b.dataset.id===id));history.replaceState(null,'','#'+id)}
+screens.forEach(s=>{const b=document.createElement('button');b.textContent=s.dataset.title;b.dataset.id=s.id;b.onclick=()=>show(s.id);nav.appendChild(b)});
+show(location.hash.slice(1)||'s-title');
+
+// Dados fictícios
+const fmt=n=>n.toLocaleString('pt-BR');
+const recs=[[1,810,'0:20,9',2,5,4],[2,960,'0:24,1',3,8,2],[3,980,'0:26,4',3,9,1],[4,1040,'0:28,0',4,7,3],[5,1110,'0:29,7',4,11,1],[6,1090,'0:33,2',4,9,2],[7,1210,'0:31,5',5,12,1],[8,1180,'0:36,8',5,10,5],[9,1300,'0:34,1',6,13,2],[10,1255,'0:39,9',5,15,1],[11,1450,'0:41,3',6,14,7],[12,1510,'0:44,0',7,16,3]];
+document.getElementById('recRows').innerHTML=recs.map(r=>`<tr><td>${r[0]}</td><td>${fmt(r[1])}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td></tr>`).join('');
+document.getElementById('levelGrid').innerHTML=Array.from({length:20},(_,i)=>{const n=i+1;const r=recs[i];
+  if(r)return `<button class="card done" aria-label="Fase ${n}, concluída, recorde ${fmt(r[1])} pontos"><b>${n}</b><small>${fmt(r[1])}</small></button>`;
+  if(n===13)return `<button class="card next" aria-label="Fase 13, liberada"><b>13</b><small>liberada</small></button>`;
+  return `<button class="card locked" aria-disabled="true" aria-label="Fase ${n}, bloqueada"><b>${n}</b><small>🔒</small></button>`}).join('');
+const toks=['bg','surface','surface-2','overlay','text','muted','primary','primary-hover','on-primary','danger','danger-text','success','border','focus','sky'];
+const cs=getComputedStyle(document.documentElement);
+document.getElementById('swatches').innerHTML=toks.map(t=>`<div class="sw"><i style="background:var(--color-${t})"></i><div><code>--color-${t}</code><br>${cs.getPropertyValue('--color-'+t).trim()}</div></div>`).join('');
+
+// Cenas: 480x270, tiles 18 px (20 colunas), personagens 24 px (9 colunas), fundos 24 px (8 colunas)
+Promise.all([load(TILES),load(CHARS),load(BGS)]).then(([T,C,B])=>{
+  const tile=(g,i,x,y)=>g.drawImage(T,(i%20)*18,Math.floor(i/20)*18,18,18,x,y,18,18);
+  const chr=(g,i,x,y,flip)=>{g.save();if(flip){g.translate(x+24,y);g.scale(-1,1);x=0;y=0}g.drawImage(C,(i%9)*24,Math.floor(i/9)*24,24,24,x,y,24,24);g.restore()};
+  const bg=(g,i,x,y)=>g.drawImage(B,(i%8)*24,Math.floor(i/8)*24,24,24,x,y,24,24);
+  const digits=(g,str,x,y)=>{for(const ch of str){if(ch>='0'&&ch<='9')tile(g,160+ +ch,x,y);else if(ch===':'){g.fillStyle='#f5f6fa';g.fillRect(x+1,y+6,2,2);g.fillRect(x+1,y+11,2,2)}x+=ch===':'?6:10}};
+  function world(g,opt){
+    g.imageSmoothingEnabled=false;
+    g.fillStyle='#5aa9e6';g.fillRect(0,0,480,270);
+    for(let x=0;x<480;x+=24){bg(g,0,x,120);bg(g,8,x,144);for(let y=168;y<270;y+=24)bg(g,16,x,y)}
+    const ground=[[0,13],[14,27]]; // colunas [início, fim) com chão
+    for(const[a,b] of ground)for(let c=a;c<b;c++){const x=c*18;tile(g,c===a?21:c===b-1?23:22,x,216);tile(g,c===a?121:c===b-1?123:122,x,234);tile(g,c===a?121:c===b-1?123:122,x,252)}
+    for(let c=16;c<20;c++)tile(g,c===16?1:c===19?3:2,c*18,144); // plataforma
+    for(let c=5;c<8;c++)tile(g,c===5?1:c===7?3:2,c*18,162);
+    tile(g,68,9*18,198);tile(g,68,10*18,198); // espinhos
+    [[6,9],[7,9],[17,6],[18,6],[19,6],[23,9]].forEach(([c,r])=>tile(g,151,c*18,r*18)); // moedas
+    if(opt.flag){tile(g,131,24*18,180);tile(g,111,24*18,162);tile(g,111,24*18,162)}
+    tile(g,44,15*18,108); // coração extra
+    chr(g,18,330,192); chr(g,24,200,90+0); // andador e voador
+    chr(g,0,opt.flag?400:110,opt.flag?192:120,false); // jogador
+  }
+  function hud(g,phase){
+    g.fillStyle='#141a33cc';g.fillRect(0,0,480,22);
+    tile(g,44,4,2);tile(g,44,22,2);tile(g,46,40,2);
+    tile(g,151,70,2);digits(g,'14',90,2);
+    digits(g,'001340',190,2);
+    digits(g,'0:42',330,2);
+    g.fillStyle='#f5f6fa';g.font='bold 11px system-ui';g.fillText('FASE',phase.length>2?400:410,15);digits(g,phase,phase.length>2?430:440,2);
+  }
+  document.querySelectorAll('canvas[data-scene]').forEach(cv=>{const g=cv.getContext('2d');const s=cv.dataset.scene;world(g,{flag:s==='flag'});if(s!=='title')hud(g,cv.dataset.phase||'13')});
+  document.querySelectorAll('canvas[data-sprite]').forEach(cv=>{const g=cv.getContext('2d');g.imageSmoothingEnabled=false;tile(g,111,0,0)});
+});
+</script>
+</body>
+</html>

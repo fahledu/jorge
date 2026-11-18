@@ -19,17 +19,21 @@ quebrado, não confirmar que está tudo certo.
 1. As seções **Critérios de aceitação** (cada critério vira pelo menos um teste) e
    **Testes necessários** do plano em `docs/plans/<feature>.md`.
 2. Os **casos-limite** dos ADRs da área. Leia-os antes de começar; não invente regra.
-3. Sempre, em toda feature com dados de usuário: usuário A não lê nem altera dado de B;
-   entrada inválida é rejeitada com o erro do catálogo; registro excluído não aparece
-   em listagem.
+3. Sempre, em toda feature que toca o save: save de versão antiga migra (fixture por
+   versão), save corrompido é preservado à parte e o jogo abre, duas abas não apagam o
+   progresso uma da outra (ADR 0007). Em toda mudança no gerador ou na física: as 100
+   fases continuam passando no `levels:check` (ADR 0005).
+
+Referência: regras do jogo (ADR 0006), save e recordes (ADR 0007), fases (ADR 0005),
+testes e qualidade (ADR 0010).
 
 ## Tipos de teste
 
 - **Unitários:** funções puras e serviços. Para algoritmos com invariantes (somas,
   arredondamento, ordenação, divisão), use testes de propriedade quando a stack tiver.
-- **Integração:** rotas contra banco e serviços reais em contêiner, não mocks do banco.
-- **Componentes:** formulários e componentes com lógica.
-- **E2E:** só os fluxos críticos completos.
+- **Integração:** `src/storage` contra um `localStorage` real ou simulado em memória; build de fases rodando o `domain` com Node.
+- **Menus (DOM):** telas com lógica, com axe (ADR 0010).
+- **E2E:** Playwright, fumaça e conclusão das fases pelo atalho de teste (ADR 0010).
 
 ## Regras
 

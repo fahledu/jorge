@@ -19,7 +19,11 @@ Você é o engenheiro de DevOps do projeto. Sua área: Dockerfiles, Compose, `.g
 | Assunto | ADR |
 |---|---|
 | Agentes, áreas e segredos | 0002 |
-<!-- PREENCHER em /iniciar-projeto: stack e versões, ambientes, CI, deploy, backups, observabilidade -->
+| Stack e versões | 0003 |
+| Estrutura do código | 0004 |
+| Fases geradas e checagem no CI | 0005 |
+| Testes e qualidade | 0010 |
+| Hospedagem, CI e deploy (VM da plataforma fahledu, sem backup: não há dado no servidor) | 0011 |
 
 ## Como trabalhar
 
@@ -31,8 +35,8 @@ Você é o engenheiro de DevOps do projeto. Sua área: Dockerfiles, Compose, `.g
   `${{ secrets.X }}`; nunca uma chave real.
 - CI com permissões mínimas, cache de dependências, timeout e cancelamento de execuções
   antigas; ações de terceiros com versão fixada.
-- `.env.example` sempre completo e comentado; a validação das variáveis no código é do
-  backend: variável nova ou renomeada vai no seu resumo para ele.
+- `.env.example` sempre completo e comentado; variável de build nova ou renomeada
+  vai no seu resumo para o agente `game`.
 - Nunca coloque segredo em arquivo versionado; use secrets do GitHub ou da plataforma.
 - Imagens com versão fixa, nunca `latest`; Dockerfiles multi-stage, usuário não-root,
   healthcheck.

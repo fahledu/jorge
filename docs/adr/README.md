@@ -59,9 +59,20 @@ Alternativas consideradas e por que não.
 |---|---|---|
 | [0001](0001-registro-de-decisoes-e-fonte-unica.md) | Registro de decisões e fonte única | Aceito |
 | [0002](0002-agentes-areas-e-garantias-por-hook.md) | Agentes, áreas e garantias por hook | Aceito |
+| [0003](0003-stack-e-versoes.md) | Stack e versões | Aceito |
+| [0004](0004-arquitetura-e-estrutura-do-codigo.md) | Arquitetura e estrutura do código | Aceito |
+| [0005](0005-fases-gerador-por-trechos-e-curva-de-dificuldade.md) | Fases: gerador por trechos e curva de dificuldade | Aceito |
+| [0006](0006-regras-do-jogo-e-pontuacao.md) | Regras do jogo e pontuação | Aceito |
+| [0007](0007-save-e-ranking-locais.md) | Save e recordes locais | Aceito |
+| [0008](0008-assets-de-terceiros-e-licenca.md) | Assets de terceiros e licença | Aceito |
+| [0009](0009-interface-controles-e-acessibilidade.md) | Interface, controles e acessibilidade | Aceito |
+| [0010](0010-testes-e-qualidade.md) | Testes e qualidade | Aceito |
+| [0011](0011-hospedagem-ci-e-deploy.md) | Hospedagem, CI e deploy | Aceito |
 
 ## Decisões ainda sem ADR
 
 Assuntos que vão precisar de ADR quando a feature correspondente for planejada:
 
-- (nenhum ainda)
+- Ranking global e save na nuvem (Fase 2 proposta do `docs/ROADMAP.md`, sem prioridade):
+  identidade, moderação de apelido, antifraude de pontuação, dados pessoais, backend e
+  banco. Nenhum ADR até o usuário decidir abrir a fase.

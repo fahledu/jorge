@@ -25,7 +25,7 @@ Feature pedida: $ARGUMENTS
 ## Etapa 2: implementação (depois que o usuário aprovar)
 
 5. Implemente as tarefas do plano na sessão principal, nesta ordem, pulando as áreas sem
-   tarefa: `devops` → `database` → `backend` → `frontend` → `qa`. Antes de cada área,
+   tarefa: `devops` → `game` → `qa`. Antes de cada área,
    leia `.claude/agents/<agente>.md` dela e siga as regras de lá (subagente começa do
    zero e relê tudo; aqui o contexto já está carregado). ADR continua só com o
    `architect`. Use o subagente da área só quando ela tiver muitas tarefas ou arquivos,

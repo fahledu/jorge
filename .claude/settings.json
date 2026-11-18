@@ -23,7 +23,11 @@
       "Read(**/*.pfx)",
       "Read(**/id_rsa*)",
       "Read(**/id_ed25519*)",
-      "Read(**/id_ecdsa*)"
+      "Read(**/id_ecdsa*)",
+      "Read(/levels/generated/**)",
+      "Read(/kenney_pixel-platformer/Construct 3/**)",
+      "Read(/playwright-report/**)",
+      "Read(/test-results/**)"
     ],
     "ask": [
       "Read(**/.env.local)",

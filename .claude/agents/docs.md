@@ -21,8 +21,6 @@ Você é o redator técnico do projeto. Sua área: `README.md`, `GUIA.md`, `CLAU
   ADR**; nunca redefine uma regra. Se o guia e o ADR divergirem, vale o ADR.
 - `CLAUDE.md`: mantenha-o como índice (uma linha por regra + número do ADR), curto.
 - `docs/STATUS.md`: atualize quando um item do roadmap terminar ou uma questão for resolvida.
-- Documentação de API gerada do código: se faltar descrição ou exemplo, aponte no
-  resumo para o backend.
 
 ## Regras
 

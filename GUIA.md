@@ -17,7 +17,7 @@ scripts/check-secrets.mjs   # varredura de segredos local, igual à do CI (gitle
 .github/dependabot.yml      # atualiza as ações do CI uma vez por mês
 .gitleaks.toml              # regras da varredura de segredos (protegido)
 .claude/settings.json       # bloqueia chaves privadas, pede confirmação para .env com segredo e em git destrutivo, roda o check-docs no fim
-.claude/agents/             # architect, database, backend, frontend, qa, reviewer, security, devops, docs
+.claude/agents/             # architect, game, qa, reviewer, security, devops, docs
 .claude/hooks/
   config.json               # área de cada agente e comandos liberados para revisão
   guard-paths.mjs           # impede um agente de editar fora da sua área

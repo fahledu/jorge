@@ -1,22 +1,39 @@
 {
   "$comment": "Áreas dos agentes, lidas por guard-paths.mjs e readonly-bash.mjs. Só a sessão principal altera este arquivo, com o usuário. protected: nenhum agente altera. owners: caminho -> único agente que altera. agents.<nome>.allow: se existir, o agente só altera esses caminhos. Regra terminada em / é pasta; senão, um arquivo. readonlyCommands: regex dos scripts do projeto que reviewer e security podem rodar. formatters: regex do caminho -> comando que formata o arquivo (o caminho vai no fim), rodado por format-on-edit.mjs após cada Edit/Write.",
-  "protected": [".claude/", ".gitleaks.toml", ".gitleaksignore"],
+  "protected": [
+    ".claude/",
+    ".gitleaks.toml",
+    ".gitleaksignore",
+    "assets/kenney/",
+    "kenney_pixel-platformer/"
+  ],
   "owners": {
-    "docs/adr/": "architect"
+    "docs/adr/": "architect",
+    "levels/": "game",
+    "infra/": "devops",
+    ".github/": "devops"
   },
   "agents": {
-    "architect": { "allow": ["docs/"] },
-    "docs": { "allow": ["docs/", "README.md", "CLAUDE.md", "GUIA.md"] },
-    "database": {},
-    "backend": {},
-    "frontend": {},
+    "architect": {
+      "allow": [
+        "docs/"
+      ]
+    },
+    "docs": {
+      "allow": [
+        "docs/",
+        "README.md",
+        "CLAUDE.md",
+        "GUIA.md"
+      ]
+    },
+    "game": {},
     "qa": {},
     "devops": {}
   },
   "readonlyCommands": [
-    "^(npm|pnpm|yarn) (run )?(test|lint|typecheck|e2e)\\b",
-    "^(npm|pnpm|yarn) (audit|outdated|why|ls|list)\\b",
-    "^pnpm (-F|--filter) \\S+ (run )?(test|lint|typecheck|audit|outdated|why|ls|list)\\b"
+    "^(npm|pnpm|yarn) (run )?(test|test:quiet|lint|typecheck|e2e|levels:check)\b",
+    "^(npm|pnpm|yarn) (audit|outdated|why|ls|list)\b"
   ],
   "formatters": {}
 }

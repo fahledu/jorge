@@ -20,7 +20,15 @@ As regras de segurança do projeto estão nos ADRs; confira o código contra ele
 | Assunto | ADR |
 |---|---|
 | Agentes, áreas e segredos | 0002 |
-<!-- PREENCHER em /iniciar-projeto: auth e sessão, autorização, dados pessoais e LGPD, criptografia, deploy e headers -->
+| Stack, versões e cadeia de dependências | 0003 |
+| Save local, privacidade (nada pessoal, nada sai do aparelho) | 0007 |
+| Assets de terceiros e licença | 0008 |
+| Hospedagem, CSP, headers, sem cookie | 0011 |
+
+Sem login, sem backend e sem dado pessoal: o foco é CSP sem `unsafe-*`, nenhuma
+requisição a terceiros (sem analytics, fontes ou CDN externos), save lido do
+`localStorage` tratado como entrada não confiável (validado pelo schema, nunca vira
+HTML), dependências e scripts de instalação (ADR 0003).
 
 ## O que procurar além dos ADRs
 
