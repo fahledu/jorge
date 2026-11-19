@@ -54,9 +54,23 @@ test("a spike hurts and pushes away; a second touch while blinking does not", as
   await page.waitForFunction(() => (window.__jorgeTest?.player()?.vx ?? 0) < 0);
   expect(await state(page)).toMatchObject({ hearts: 2, invulnerable: true });
 
-  await place(page, SPIKE.col, SPIKE.row);
-  await frames(page, 5);
-  expect(await state(page)).toMatchObject({ hearts: 2, invulnerable: true });
+  // Back on the spike a few frames after the hit (well inside the 1.5 s even on a slow
+  // machine): the hearts seen over the next 5 frames stay at 2.
+  const hearts = await page.evaluate(
+    ([col, row]) =>
+      new Promise<number[]>((resolve) => {
+        window.__jorgeTest?.placePlayer(col, row);
+        const seen: number[] = [];
+        const tick = (): void => {
+          seen.push(window.__jorgeTest?.state().hearts ?? -1);
+          if (seen.length >= 5) resolve(seen);
+          else requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }),
+    [SPIKE.col, SPIKE.row] as const,
+  );
+  expect(hearts).toEqual([2, 2, 2, 2, 2]);
 
   // Still on the spike once the blinking ends: it hurts again (plan 1d, decision 2).
   await page.waitForFunction(() => window.__jorgeTest?.state().hearts === 1);
@@ -87,6 +101,27 @@ test("falling out of the map also shows the angel before restarting", async ({ p
   await place(page, 15, 10);
   await page.waitForFunction(() => window.__jorgeTest?.state().status === "dying");
   await page.waitForFunction(() => window.__jorgeTest?.state().attempt === 2);
+});
+
+test("with reduce effects turned on while playing, no blinking", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await place(page, SPIKE.col, SPIKE.row);
+  await page.waitForFunction(() => window.__jorgeTest?.state().invulnerable);
+  const alphas = await page.evaluate(
+    () =>
+      new Promise<number[]>((resolve) => {
+        const seen: number[] = [];
+        const tick = (): void => {
+          if (window.__jorgeTest?.state().invulnerable) {
+            seen.push(window.__jorgeTest.player()?.alpha ?? -1);
+            requestAnimationFrame(tick);
+          } else resolve(seen);
+        };
+        requestAnimationFrame(tick);
+      }),
+  );
+  expect(alphas.length).toBeGreaterThan(30);
+  expect(new Set(alphas)).toEqual(new Set([0.5]));
 });
 
 test("the pause freezes the invulnerability", async ({ page }) => {

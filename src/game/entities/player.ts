@@ -23,6 +23,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       PLAYER_BODY.frameSize - PLAYER_BODY.height,
     );
     this.setCollideWorldBounds(true);
+    // Starts looking right, the way the level goes.
+    this.setFlipX(!PLAYER_FACES_RIGHT);
     if (!scene.anims.exists(WALK)) {
       scene.anims.create({
         key: WALK,

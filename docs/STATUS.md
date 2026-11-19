@@ -44,8 +44,9 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
   faixa do HUD só com os corações; efeito de morte pedido na aprovação (anjinho com as
   asas do tile 144 e auréola, sobe até sair da tela; `death.ts`), nas duas mortes.
   Reduzir efeitos vem do `prefers-reduced-motion` até o 1i/1j. Desvios no plano.
-  Rodada à mão na fase 1 (concluída; mortes, dano, coleta e pausa conferidos); fps e
-  reduzir efeitos não conferidos.
+  Rodada à mão na fase 1 no Edge (concluída, 120 fps; mortes, dano, coleta e pausa
+  conferidos). Corrigidos depois: o personagem olhava para o lado oposto ao andar (a folha
+  olha para a esquerda) e reduzir efeitos só era lido ao abrir (agora acompanha o sistema).
 
 ## Limites aceitos
 
@@ -72,7 +73,8 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
   a invulnerabilidade (plano 1d, decisões 2 e 10).
 - No 1g: a cena aloca arrays e objetos a cada passo (contatos, `stepAttempt`); com
   fases de muitos itens, evitar (revisão do 1d).
-- Teste à mão do 1d com "Reduzir efeitos" ligado no sistema (piscar e anjinho parados).
+- Conferir à mão, no 1e, "Reduzir efeitos" ligado no sistema (piscar e anjinho parados)
+  e o personagem olhando para o lado em que anda.
 
 - Confirmar: sem analytics nem rastreio de qualquer tipo (suposição do ADR 0007); a
   hipótese do MVP é medida por teste com 5 pessoas (`docs/ROADMAP.md`).

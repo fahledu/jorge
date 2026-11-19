@@ -107,8 +107,8 @@ export interface LevelSceneData {
   controls: LevelControls;
   /** Starts at 1 and goes up on every restart (death or "play again"). */
   attempt: number;
-  /** "Reduce effects": no blinking nor motion in the effects (ADR 0009). */
-  reduceEffects: boolean;
+  /** "Reduce effects" now: no blinking nor motion in the effects (ADR 0009). */
+  reduceEffects: () => boolean;
   /** Colors from the design tokens, as 0xRRGGBB. */
   colors: { hud: number; halo: number };
 }
@@ -145,6 +145,8 @@ export interface PlayerSnapshot {
   vx: number;
   vy: number;
   onGround: boolean;
+  /** Opacity of the sprite (blinking, death effect). */
+  alpha: number;
 }
 
 const NO_INPUT: CommandFrame = {
@@ -297,6 +299,7 @@ export class LevelScene extends Phaser.Scene {
       vx: body.velocity.x,
       vy: body.velocity.y,
       onGround: this.#onGround,
+      alpha: this.#player.alpha,
     };
   }
 
@@ -358,7 +361,7 @@ export class LevelScene extends Phaser.Scene {
       this.#pickups.find((pickup) => pickup.contact.id === item.id)?.image.setVisible(false);
     }
     this.#showHearts();
-    this.#player.setAlpha(invulnerabilityAlpha(this.#attempt, this.#data.reduceEffects));
+    this.#player.setAlpha(invulnerabilityAlpha(this.#attempt, this.#data.reduceEffects()));
 
     if (result.outcome === "completed") {
       this.#complete();
@@ -435,7 +438,7 @@ export class LevelScene extends Phaser.Scene {
     const dying = this.#dying;
     if (!dying) return;
     dying.elapsedMs += STEP_MS;
-    if (deathFinished(dying.elapsedMs, dying.screenTop, this.#data.reduceEffects)) {
+    if (deathFinished(dying.elapsedMs, dying.screenTop, this.#data.reduceEffects())) {
       this.#restart();
       return;
     }
@@ -445,7 +448,7 @@ export class LevelScene extends Phaser.Scene {
   #showDeath(): void {
     const dying = this.#dying;
     if (!dying) return;
-    const pose = deathPose(dying.elapsedMs, this.#data.reduceEffects);
+    const pose = deathPose(dying.elapsedMs, this.#data.reduceEffects());
     const x = dying.x + pose.dx;
     const y = dying.y + pose.dy;
     this.#player.setPosition(x, y).setAlpha(pose.alpha);

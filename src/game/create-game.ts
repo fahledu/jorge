@@ -69,6 +69,8 @@ export function createGame(
   });
   new ResizeObserver(fit).observe(parent);
 
+  // Read on every use, so changing the system setting works without reloading.
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const commands = new CommandState();
   const keyboard = attachKeyboard(commands);
   const controls = {
@@ -111,7 +113,7 @@ export function createGame(
             controls,
             attempt: 1,
             // From the system until the saved setting of items 1i and 1j (plan 1d).
-            reduceEffects: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+            reduceEffects: () => reducedMotion.matches,
             colors: { hud: tokenColor("--color-bg"), halo: tokenColor("--color-primary") },
           };
           game.scene.add("level", LevelScene, true, data);
