@@ -57,8 +57,8 @@ das tarefas):
 10. **Ordem num passo da física.** *Suposição:* queda → coleta (moedas e corações) →
     bandeira → dano → mola. Coração e espinho no mesmo passo com 1 coração → sobrevive
     com 1; bandeira e espinho no mesmo passo → fase concluída, sem dano; levou dano no
-    passo → a mola não lança nesse passo. Se aprovada, a ordem e a decisão 2 viram
-    casos-limite do ADR 0006 (o 1e as usa para os inimigos), pelo `architect`.
+    passo → a mola não lança nesse passo. A ordem e a decisão 2 já são casos-limite do
+    ADR 0006 (o 1e as usa para os inimigos).
 11. **Morte por 0 corações.** *Suposição:* recomeço imediato da fase como na queda (1c),
     tentativa nova com 3 corações e as moedas e corações de volta. A mensagem "Ops!" do
     mockup é do 1f. O recomeço vem depois do efeito de morte (decisão 14).

@@ -4,9 +4,9 @@ Ponto de retomada: onde o projeto está, o que vem a seguir e o que está em abe
 Atualize ao fim de cada item do roadmap (`docs/ROADMAP.md`) ou quando uma questão for
 resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico está no git.
 
-- **Última atualização:** 2026-11-18
+- **Última atualização:** 2026-11-19
 - **Fase:** Fase 1 (MVP).
-- **Próximo passo:** item **1e** do roadmap: `/feature 1e` (antes, o `architect` fecha a pendência do ADR 0006 abaixo).
+- **Próximo passo:** item **1e** do roadmap: `/feature 1e`.
 
 ## Feito
 
@@ -68,9 +68,6 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
 
 ## Questões em aberto
 
-- Antes do 1e: o `architect` passa para o ADR 0006, como casos-limite, a ordem do passo
-  (queda → coleta → bandeira → dano → mola) e o espinho que não fere nem empurra durante
-  a invulnerabilidade (plano 1d, decisões 2 e 10).
 - No 1g: a cena aloca arrays e objetos a cada passo (contatos, `stepAttempt`); com
   fases de muitos itens, evitar (revisão do 1d).
 

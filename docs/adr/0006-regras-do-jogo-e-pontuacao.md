@@ -60,6 +60,13 @@ sentido como recorde. As regras são usadas pelo jogo, pelo HUD e pelo save e re
 - Coração coletado com 3 corações → continua 3, sem pontos.
 - Dois danos em 1 s (espinho e andador) → só o primeiro tira coração.
 - Pisar no inimigo subindo (no meio do pulo) → dano, não derrota.
+- Ordem num passo da tentativa: queda → coleta (moedas e corações) → bandeira → dano →
+  mola.
+  - Pegar o coração e encostar no espinho no mesmo passo, com 1 coração → sobrevive com 1.
+  - Tocar a bandeira e o espinho no mesmo passo → fase concluída, sem dano.
+  - Levou dano no passo → a mola não lança nesse passo.
+- Espinho durante a invulnerabilidade → não fere nem empurra; o jogador atravessa. Acabou
+  a invulnerabilidade ainda em cima → fere de novo. Ninguém fica preso entre espinhos.
 - Concluir a fase 100 → 1500 + eventos; nada é liberado; tela de fim.
 
 ## Descartado
