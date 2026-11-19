@@ -24,6 +24,12 @@ Para cada fase **1, 10, 50 e 100**, no notebook (teclado) e no celular (toque):
   impossível ou injusto.
 - Controles: andar, pular baixo (toque curto) e alto (segurado), pausar (Esc/P no teclado,
   botão no celular), voltar do jogo depois de trocar de aba.
+- Perigos e coletáveis: o espinho tira 1 coração do topo, empurra e faz piscar; tocar
+  outro espinho piscando não tira coração; com 0 corações (ou caindo num buraco) o
+  personagem vira anjinho e sobe até sair da tela, e a fase recomeça com tudo de volta;
+  a mola leva até o coração da plataforma alta; moedas e coração somem ao serem pegos.
+  Com "Reduzir efeitos" do sistema ligado: transparência fixa em vez de piscar, e o
+  anjinho some parado no lugar.
 - Imagem: pixels nítidos (sem borrão), sem faixas pretas fora do lugar, sem tremor da
   câmera com "Reduzir efeitos" ligado.
 - **Fps:** com o contador, fique 30 s numa parte movimentada da fase e anote a média.

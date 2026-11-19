@@ -7,8 +7,10 @@ import {
   jumpReach,
   MAX_FALL_SPEED,
   PHYSICS_FPS,
+  SPRING_SPEED,
   STEP_MS,
   simulateJump,
+  springRise,
 } from "./physics.ts";
 
 describe("jump reach (roadmap 1c, ADR 0005)", () => {
@@ -63,5 +65,18 @@ describe("isBelowMap", () => {
   it("is true only once the top of the body reaches the bottom of the map", () => {
     expect(isBelowMap(269.9)).toBe(false);
     expect(isBelowMap(270)).toBe(true);
+  });
+});
+
+describe("springRise (plan 1d)", () => {
+  it("reaches 6 to 8 tiles, above the jump and the 5-tile platform of level 1", () => {
+    const { heightTiles } = springRise();
+    expect(heightTiles).toBeGreaterThanOrEqual(6);
+    expect(heightTiles).toBeLessThan(8);
+    expect(heightTiles).toBeGreaterThan(jumpReach().heightTiles);
+  });
+
+  it("moves less than half a tile per step", () => {
+    expect(SPRING_SPEED / PHYSICS_FPS).toBeLessThan(9);
   });
 });

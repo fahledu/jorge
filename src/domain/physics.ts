@@ -31,6 +31,13 @@ export const MAX_FALL_SPEED = 360;
 export const COYOTE_MS = 100;
 /** A jump pressed this long before landing happens on landing. */
 export const JUMP_BUFFER_MS = 100;
+/** Push away from a spike, px/s: sideways and upwards (plan 1d). */
+export const KNOCKBACK_SPEED_X = 160;
+export const KNOCKBACK_SPEED_Y = 250;
+/** Control is locked this long after a push, so the push is not undone at once. */
+export const KNOCKBACK_MS = 250;
+/** Upward speed a spring gives, px/s (about 7 tiles high). */
+export const SPRING_SPEED = 520;
 /** Player's collision box inside its 24×24 frame, flush with the bottom of the frame. */
 export const PLAYER_BODY = { width: 14, height: 20, frameSize: 24 } as const;
 
@@ -100,6 +107,23 @@ export interface JumpReach {
 export function jumpReach(): JumpReach {
   const jump = simulateJump({ run: true });
   return { heightTiles: jump.maxRisePx / TILE_SIZE, gapTiles: jump.airDistancePx / TILE_SIZE };
+}
+
+/**
+ * Height a spring launch reaches, in tiles: from `vy = −SPRING_SPEED`, with no control and
+ * no cut, stepped like `simulateJump`.
+ */
+export function springRise(): { heightTiles: number } {
+  const dt = STEP_MS / 1000;
+  let vy = -SPRING_SPEED;
+  let y = 0;
+  let maxRise = 0;
+  while (vy < 0) {
+    vy += GRAVITY * dt;
+    y += vy * dt;
+    maxRise = Math.max(maxRise, -y);
+  }
+  return { heightTiles: maxRise / TILE_SIZE };
 }
 
 /** The body has left the map through the bottom (death by falling, ADR 0006). */

@@ -6,7 +6,7 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
 
 - **Última atualização:** 2026-11-18
 - **Fase:** Fase 1 (MVP).
-- **Próximo passo:** item **1d** do roadmap: `/feature 1d`.
+- **Próximo passo:** item **1e** do roadmap: `/feature 1e` (antes, o `architect` fecha a pendência do ADR 0006 abaixo).
 
 ## Feito
 
@@ -39,6 +39,12 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
   `resetFlags()` a cada passo (os passos extras do quadro não reiniciam `blocked.down`); o
   personagem da folha olha de frente, o espelho quase não aparece. Rodada à mão no Edge
   (fase 1 concluída, 115 fps de média); Firefox não verificado (sem o navegador).
+- 1d: perigos e coletáveis. `attempt.ts` (corações, invulnerabilidade, moedas, ordem do
+  passo), espinho não sólido com empurrão e trava de controle, mola, coração e moeda,
+  faixa do HUD só com os corações; efeito de morte pedido na aprovação (anjinho com as
+  asas do tile 144 e auréola, sobe até sair da tela; `death.ts`), nas duas mortes.
+  Reduzir efeitos vem do `prefers-reduced-motion` até o 1i/1j. Desvios no plano.
+  Não rodado à mão ainda: jogar a fase 1 pelo roteiro e registrar na tabela.
 
 ## Limites aceitos
 
@@ -59,6 +65,13 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
   comando embrulhado (`bash -c`, script) escapa, e fazer isso é contornar hook (ADR 0002).
 
 ## Questões em aberto
+
+- Antes do 1e: o `architect` passa para o ADR 0006, como casos-limite, a ordem do passo
+  (queda → coleta → bandeira → dano → mola) e o espinho que não fere nem empurra durante
+  a invulnerabilidade (plano 1d, decisões 2 e 10).
+- No 1g: a cena aloca arrays e objetos a cada passo (contatos, `stepAttempt`); com
+  fases de muitos itens, evitar (revisão do 1d).
+- Teste à mão do 1d na fase 1 (roteiro), incluindo reduzir efeitos ligado no sistema.
 
 - Confirmar: sem analytics nem rastreio de qualquer tipo (suposição do ADR 0007); a
   hipótese do MVP é medida por teste com 5 pessoas (`docs/ROADMAP.md`).

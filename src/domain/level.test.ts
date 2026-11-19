@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { makeMap, TILESET } from "./fixtures/maps.ts";
 import {
@@ -137,6 +138,8 @@ describe("buildManualLevel", () => {
       tilesetName: "tileset-tiles",
       start: { x: 27, y: 207 },
       flag: { x: 98 * 18 + 9, y: 207 },
+      items: [],
+      spikes: [],
     });
   });
 });
@@ -164,5 +167,30 @@ describe("readLevelInfo", () => {
     const file = level();
     file.layers.pop();
     expect(() => readLevelInfo(file)).toThrow(/"start"/);
+  });
+
+  it("reads the coins, hearts, springs and spikes of level 1", () => {
+    const tmj = JSON.parse(readFileSync("levels/manual/001.tmj", "utf8"));
+    const info = readLevelInfo(JSON.parse(buildManualLevel(input(mapOf(tmj))).json));
+    const count = (type: string) => info.items.filter((i) => i.type === type).length;
+    expect(count("coin")).toBe(5);
+    expect(count("heart")).toBe(1);
+    expect(count("spring")).toBe(1);
+    expect(info.items.find((i) => i.type === "spring")).toEqual({
+      id: 5,
+      type: "spring",
+      x: 729,
+      y: 207,
+    });
+    expect(info.spikes).toEqual([
+      { col: 51, row: 11 },
+      { col: 52, row: 11 },
+    ]);
+  });
+
+  it("rejects a spawn without an id", () => {
+    const file = level();
+    delete file.layers[2].objects[0].id;
+    expect(() => readLevelInfo(file)).toThrow(/generated format/);
   });
 });

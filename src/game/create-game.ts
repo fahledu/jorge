@@ -7,6 +7,12 @@ import { attachKeyboard } from "./input/keyboard.ts";
 import { loadLevel } from "./levels.ts";
 import { LevelScene, type LevelSceneData } from "./scenes/level-scene.ts";
 
+/** A color token of the theme (ADR 0009), as 0xRRGGBB for the canvas. */
+function tokenColor(name: string): number {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return Phaser.Display.Color.HexStringToColor(value).color;
+}
+
 export interface GameHandle {
   /** Loads level 1 (on demand, ADR 0005), starts it and shows the canvas. */
   start(): void;
@@ -99,7 +105,15 @@ export function createGame(
         (level) => {
           parent.hidden = false;
           game.canvas.setAttribute("aria-label", levelLabel(level.info.levelNumber));
-          const data: LevelSceneData = { level, bus, controls, attempt: 1 };
+          const data: LevelSceneData = {
+            level,
+            bus,
+            controls,
+            attempt: 1,
+            // From the system until the saved setting of items 1i and 1j (plan 1d).
+            reduceEffects: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+            colors: { hud: tokenColor("--color-bg"), halo: tokenColor("--color-primary") },
+          };
           game.scene.add("level", LevelScene, true, data);
           fit();
         },

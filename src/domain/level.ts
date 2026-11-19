@@ -2,6 +2,8 @@
 // with the tileset embedded and the level properties, in a canonical serialization so the
 // same source always gives the same bytes and the same `contentHash`.
 import * as z from "zod/mini";
+import { type Cell, cellsWith } from "./geometry.ts";
+import { gidOf, SPIKE_TILES } from "./tiles.ts";
 import { MAP_HEIGHT, TILE_SIZE, type TmjMap } from "./tmj.ts";
 import type { TilesetInfo } from "./tsx.ts";
 
@@ -162,11 +164,17 @@ export function buildManualLevel(input: ManualLevelInput): BuiltLevel {
   return { json: `${serialize(levelFile(contentHash), map.width)}\n`, contentHash };
 }
 
-const pointSchema = z.object({ type: z.string(), x: z.number(), y: z.number() });
+const pointSchema = z.object({ id: z.int(), type: z.string(), x: z.number(), y: z.number() });
 const levelFileSchema = z.object({
   width: z.int(),
   properties: z.array(z.object({ name: z.string(), value: z.unknown() })),
-  layers: z.array(z.object({ name: z.string(), objects: z.optional(z.array(pointSchema)) })),
+  layers: z.array(
+    z.object({
+      name: z.string(),
+      objects: z.optional(z.array(pointSchema)),
+      data: z.optional(z.array(z.int())),
+    }),
+  ),
   tilesets: z.tuple([z.object({ name: z.string() })]),
 });
 
@@ -177,6 +185,26 @@ export interface LevelInfo {
   tilesetName: string;
   start: { x: number; y: number };
   flag: { x: number; y: number };
+  /** Coins, hearts and springs, at their spawn points (centre of a cell). */
+  items: LevelItem[];
+  /** Cells of the terrain holding a spike. */
+  spikes: Cell[];
+}
+
+export type ItemType = "coin" | "heart" | "spring";
+
+export interface LevelItem {
+  /** Id of the spawn in the file: one coin or heart is collected once per attempt. */
+  id: number;
+  type: ItemType;
+  x: number;
+  y: number;
+}
+
+const ITEM_TYPES: readonly string[] = ["coin", "heart", "spring"] satisfies ItemType[];
+
+function isItemType(type: string): type is ItemType {
+  return ITEM_TYPES.includes(type);
 }
 
 /**
@@ -202,5 +230,13 @@ export function readLevelInfo(json: unknown): LevelInfo {
     tilesetName: tilesets[0].name,
     start: point("start"),
     flag: point("flag"),
+    items: objects.flatMap((o) =>
+      isItemType(o.type) ? [{ id: o.id, type: o.type, x: o.x, y: o.y }] : [],
+    ),
+    spikes: cellsWith(
+      layers.find((l) => l.name === "terrain")?.data ?? [],
+      width,
+      SPIKE_TILES.map(gidOf),
+    ),
   };
 }

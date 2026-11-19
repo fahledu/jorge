@@ -40,6 +40,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.body.reset(feet.x, feet.y - PLAYER_BODY.frameSize / 2);
   }
 
+  /** Where the player looks: 1 right, −1 left. */
+  get facing(): -1 | 1 {
+    return this.flipX === PLAYER_FACES_RIGHT ? -1 : 1;
+  }
+
+  /** Still pose for the death effect: idle frame, no animation, fully opaque. */
+  freeze(): void {
+    this.anims.stop();
+    this.setFrame(PLAYER_FRAMES.idle);
+    this.setAlpha(1);
+  }
+
   /** Picks the frame from the motion: idle, walking (2 frames) or in the air. */
   show(onGround: boolean): void {
     const vx = this.body.velocity.x;

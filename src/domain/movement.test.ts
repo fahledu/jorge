@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   initialMovement,
+  knockback,
   type MovementInput,
   type MovementState,
+  springBounce,
+  springLaunches,
   stepMovement,
 } from "./movement.ts";
-import { JUMP_SPEED, RUN_SPEED, STEP_MS } from "./physics.ts";
+import { JUMP_SPEED, RUN_SPEED, SPRING_SPEED, STEP_MS } from "./physics.ts";
 
 const idle: MovementInput = {
   left: false,
@@ -44,17 +47,24 @@ describe("jump", () => {
     expect(result.vy).toBe(-JUMP_SPEED);
   });
 
+  const jumped = () =>
+    step(initialMovement(), { onGround: true, jump: true, jumpPressed: true }).state;
+
   it("cuts the speed when released while rising fast", () => {
-    expect(step(initialMovement(), { vy: -393 }).vy).toBe(-200);
+    expect(step(jumped(), { vy: -393 }).vy).toBe(-200);
   });
 
   it("keeps a slow rise or a fall when released", () => {
-    expect(step(initialMovement(), { vy: -150 }).vy).toBe(-150);
-    expect(step(initialMovement(), { vy: 50 }).vy).toBe(50);
+    expect(step(jumped(), { vy: -150 }).vy).toBe(-150);
+    expect(step(jumped(), { vy: 50 }).vy).toBe(50);
   });
 
   it("keeps the speed while the jump is held", () => {
-    expect(step(initialMovement(), { jump: true, vy: -393 }).vy).toBe(-393);
+    expect(step(jumped(), { jump: true, vy: -393 }).vy).toBe(-393);
+  });
+
+  it("does not cut a rise that did not come from a jump", () => {
+    expect(step(initialMovement(), { vy: -393 }).vy).toBe(-393);
   });
 });
 
@@ -103,5 +113,64 @@ describe("no extra jumps", () => {
     const jumped = step(initialMovement(), { onGround: true, jump: true, jumpPressed: true });
     const released = step(jumped.state, { vy: -380 }).state;
     expect(step(released, { jump: true, jumpPressed: true, vy: -360 }).vy).toBe(-360);
+  });
+});
+
+describe("knockback", () => {
+  it("pushes away and up", () => {
+    const push = knockback(-1);
+    expect(push.vx).toBe(-160);
+    expect(push.vy).toBe(-250);
+  });
+
+  it("locks the control for 15 steps, dropping jump presses", () => {
+    let state = knockback(-1).state;
+    for (let i = 0; i < 14; i += 1) {
+      const result = step(state, { right: true, jump: true, jumpPressed: true, onGround: true });
+      expect(result.vx).toBe(-160);
+      expect(result.vy).toBe(0);
+      state = result.state;
+    }
+    const free = step(state, { right: true });
+    expect(free.vx).toBe(RUN_SPEED);
+  });
+
+  it("is not cut when the jump is released", () => {
+    const state = knockback(1).state;
+    const after = repeat(state, 15, {});
+    expect(step(after, { vy: -240 }).vy).toBe(-240);
+  });
+});
+
+describe("spring", () => {
+  it("launches up without a cut, keeping vx", () => {
+    const launch = springBounce(RUN_SPEED);
+    expect(launch.vy).toBe(-SPRING_SPEED);
+    expect(launch.vx).toBe(RUN_SPEED);
+    expect(step(launch.state, { vy: -503 }).vy).toBe(-503);
+  });
+
+  it("gives no jump in the air after the launch", () => {
+    const launch = springBounce(0);
+    expect(step(launch.state, { jump: true, jumpPressed: true, vy: -500 }).vy).toBe(-500);
+  });
+});
+
+describe("springLaunches", () => {
+  it("launches when not rising and not hurt", () => {
+    expect(springLaunches(0, false)).toBe(true);
+    expect(springLaunches(120, false)).toBe(true);
+    expect(springLaunches(-1, false)).toBe(false);
+    expect(springLaunches(0, true)).toBe(false);
+  });
+});
+
+describe("knockback in the middle of a jump", () => {
+  it("is not cut when the held jump is released", () => {
+    const jumped = step(initialMovement(), { onGround: true, jump: true, jumpPressed: true });
+    const rising = step(jumped.state, { jump: true, vy: -380 }).state;
+    const after = repeat(knockback(1).state, 15, { jump: true, vy: -240 });
+    expect(rising.cuttable).toBe(true);
+    expect(step(after, { vy: -240 }).vy).toBe(-240);
   });
 });
