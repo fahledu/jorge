@@ -33,3 +33,4 @@ Para cada fase **1, 10, 50 e 100**, no notebook (teclado) e no celular (toque):
 
 | Data | Item | Aparelho e navegador | Fase | Concluiu? | Fps médio (30 s) | Observações |
 |---|---|---|---|---|---|---|
+| 2026-11-18 | 1c | Notebook, Edge (Chromium), monitor de 120 Hz | 1 | sim | 115 | Plataforma da linha 7 fora do pulo, como previsto (mola, 1d). Fase curta demais: alongar no 1e. |

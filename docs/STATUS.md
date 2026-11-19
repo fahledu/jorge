@@ -6,8 +6,8 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
 
 - **Última atualização:** 2026-11-18
 - **Fase:** Fase 1 (MVP).
-- **Próximo passo:** rodada à mão do 1c (`docs/ROTEIRO-TESTE.md`, fase 1 no Chrome e no
-  Firefox, fps médio ≥ 55); depois o item **1d**: `/feature 1d`.
+- **Próximo passo:** rodada à mão do 1c no Firefox (`docs/ROTEIRO-TESTE.md`; Edge já
+  passou); depois o item **1d**: `/feature 1d`.
 
 ## Feito
 
@@ -39,7 +39,7 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
   cortaria o pulo); `src/domain/geometry.ts` novo (bandeira e posições); a cena chama
   `resetFlags()` a cada passo (os passos extras do quadro não reiniciam `blocked.down`); o
   personagem da folha olha de frente, o espelho quase não aparece. **Pendente:** a rodada
-  à mão do roteiro (fase 1 inteira pelo teclado e fps).
+  à mão no Firefox (Edge feito: fase 1 concluída, 115 fps de média).
 
 ## Limites aceitos
 

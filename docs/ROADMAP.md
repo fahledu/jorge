@@ -89,10 +89,14 @@ que terminou").
 
 ### 1e. Inimigos
 - **Escopo:** andador (vai e volta, vira na borda e na parede) e voador (vai e volta no
-  ar); derrota pisando, dano no resto; inimigo derrotado não volta na tentativa.
-- **ADRs:** 0006.
+  ar); derrota pisando, dano no resto; inimigo derrotado não volta na tentativa. Fase 1
+  (tutorial) alongada, apresentando um elemento por vez (pulo, vão, espinho, mola, moeda,
+  coração, andador, voador): no teste à mão do 1c, os 100 tiles atuais pareceram curtos
+  demais.
+- **ADRs:** 0006, 0012.
 - **Depende de:** 1d.
-- **Pronto quando:** pisar derrota e qualquer outro contato fere, nos dois tipos, na fase 1.
+- **Pronto quando:** pisar derrota e qualquer outro contato fere, nos dois tipos, na fase 1;
+  a fase 1 nova é concluída à mão do início à bandeira.
 
 ### 1f. Pontuação, HUD e fim de fase
 - **Escopo:** eventos da tentativa e cálculo puro de pontos e bônus de tempo; HUD no
