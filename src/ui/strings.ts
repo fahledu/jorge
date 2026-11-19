@@ -5,4 +5,8 @@ export const strings = {
   play: "Jogar",
   saveNote: "Seu progresso fica salvo neste navegador.",
   levelLabel: (levelNumber: number): string => `Fase ${levelNumber}`,
+  pause: "Pausa",
+  resume: "Continuar",
+  levelCompleted: (levelNumber: number): string => `Fase ${levelNumber} concluída!`,
+  playAgain: "Jogar de novo",
 } as const;

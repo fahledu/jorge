@@ -12,7 +12,9 @@ ou na mensagem do commit.
    `Network:` que o Vite mostra (porta 5190). Segure o celular deitado (paisagem).
 4. **Firefox e WebKit** (o E2E só roda Chromium): repita o passo 2 no Firefox e, se tiver
    acesso a um Mac ou iPhone, no Safari.
-5. Contador de fps: liga só no modo de desenvolvimento (nasce no item 1c).
+5. Contador de fps: aparece só no `pnpm dev`, no canto superior direito do jogo, com o fps
+   atual e a média dos últimos 30 s (atualiza 2 vezes por segundo). No build de produção
+   ele não existe.
 
 ## O que fazer
 

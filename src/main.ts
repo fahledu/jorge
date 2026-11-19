@@ -2,6 +2,8 @@ import "./ui/tokens.css";
 import "./ui/base.css";
 import { createGame } from "./game/create-game.ts";
 import { EventBus } from "./game/events.ts";
+import { mountLevelCompleteScreen } from "./ui/level-complete-screen.ts";
+import { mountPauseScreen } from "./ui/pause-screen.ts";
 import { strings } from "./ui/strings.ts";
 import { mountTitleScreen } from "./ui/title-screen.ts";
 
@@ -12,6 +14,9 @@ function byId(id: string): HTMLElement {
 }
 
 const bus = new EventBus();
-const game = createGame(byId("game"), strings.gameName, strings.levelLabel);
+const game = createGame(byId("game"), bus, strings.gameName, strings.levelLabel);
 bus.on("playRequested", () => game.start());
-mountTitleScreen(byId("ui"), bus);
+const ui = byId("ui");
+mountTitleScreen(ui, bus);
+mountPauseScreen(ui, bus);
+mountLevelCompleteScreen(ui, bus);

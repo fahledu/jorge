@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// E2E against the production build served by `vite preview` with the CSP (ADR 0010).
+// E2E against the `e2e` build (production plus the test shortcut, ADR 0010), served by
+// `vite preview` with the production CSP.
 export default defineConfig({
   testDir: "e2e",
   forbidOnly: !!process.env.CI,
@@ -12,7 +13,7 @@ export default defineConfig({
     { name: "mobile-landscape", use: { ...devices["Pixel 7 landscape"] } },
   ],
   webServer: {
-    command: "pnpm build && pnpm preview",
+    command: "pnpm typecheck && pnpm build:e2e && pnpm preview:e2e",
     url: "http://localhost:5191",
     // Always a fresh build: a leftover preview would test stale code (strictPort fails instead).
     reuseExistingServer: false,

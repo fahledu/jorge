@@ -5,6 +5,14 @@
 export interface GameEvents {
   /** The player asked to start playing (title screen). */
   playRequested: undefined;
+  /** game → ui: the level stopped (Esc/P or focus lost). */
+  paused: { levelNumber: number };
+  /** game → ui: the player touched the flag. */
+  levelCompleted: { levelNumber: number };
+  /** ui → game: continue the paused level. */
+  resumeRequested: undefined;
+  /** ui → game: play the level again from the start. */
+  restartRequested: undefined;
 }
 
 export type GameEventName = keyof GameEvents;

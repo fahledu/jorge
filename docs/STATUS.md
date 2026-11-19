@@ -6,7 +6,8 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
 
 - **Última atualização:** 2026-11-18
 - **Fase:** Fase 1 (MVP).
-- **Próximo passo:** item **1c** do roadmap: `/feature 1c`.
+- **Próximo passo:** rodada à mão do 1c (`docs/ROTEIRO-TESTE.md`, fase 1 no Chrome e no
+  Firefox, fps médio ≥ 55); depois o item **1d**: `/feature 1d`.
 
 ## Feito
 
@@ -28,6 +29,17 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
   `properties`; `readLevelInfo` no `domain` valida a fase carregada; o fundo do pack é
   opaco e cobre o céu do token (que aparece só antes de a fase carregar); a faixa de
   morros está fixa para chão na linha 12 até haver fases com outra altura (1g).
+- 1c: jogador e física. Constantes, controle (`movement.ts`), comandos e alcance do pulo
+  (`jumpReach`: 4,48 tiles de altura, 4,99 de vão) no `domain`; jogador com 2 quadros,
+  colisão, câmera, queda e recomeço, bandeira com "Fase 1 concluída!", pausa por Esc/P e
+  perda de foco, contador de fps só no dev, atalho `window.__jorgeTest` só no build `e2e`
+  (`pnpm build:e2e`, `dist-e2e/`), `scripts/check-dist.ts` no fim do `pnpm build`. E2E
+  mede o pulo real contra o modelo (tolerância de 0,25 tile). Desvios do plano: o teto de
+  queda fica em `stepMovement` (o `maxVelocity` do Arcade limita os dois sentidos e
+  cortaria o pulo); `src/domain/geometry.ts` novo (bandeira e posições); a cena chama
+  `resetFlags()` a cada passo (os passos extras do quadro não reiniciam `blocked.down`); o
+  personagem da folha olha de frente, o espelho quase não aparece. **Pendente:** a rodada
+  à mão do roteiro (fase 1 inteira pelo teclado e fps).
 
 ## Limites aceitos
 

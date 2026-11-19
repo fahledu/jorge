@@ -150,3 +150,39 @@ body {
     padding: var(--space-4);
   }
 }
+
+/* Dialog over the game (pause, level complete): dimmed game behind the panel. */
+.veil-dim {
+  background: var(--color-overlay);
+}
+
+.panel-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.title {
+  margin: 0 0 var(--space-2);
+  font: 800 var(--text-title) var(--font-ui);
+}
+
+.subtitle {
+  margin: 0 0 var(--space-4);
+}
+
+.success {
+  color: var(--color-success);
+}
+
+/* Development fps meter (plan 1c); never in the production build. */
+.fps-meter {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-overlay);
+  color: var(--color-text);
+  font: 400 var(--text-small) var(--font-num);
+  pointer-events: none;
+}

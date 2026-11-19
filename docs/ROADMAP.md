@@ -218,3 +218,4 @@ sai desta lista, e o descartado também.
 - Fonte pixel com licença OFL nos títulos dos menus (fora do MVP, ADR 0009)
 - Outros idiomas (fora do MVP)
 - Fundo diferente por fase ou por tier (fora de escopo do plano 1b)
+- Plataformas atravessáveis por baixo (fora de escopo do plano 1c)

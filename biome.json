@@ -16,6 +16,7 @@
       "!scripts/*.mjs",
       "!pnpm-lock.yaml",
       "!**/dist",
+      "!**/dist-e2e",
       "!**/coverage",
       "!**/playwright-report",
       "!**/test-results",

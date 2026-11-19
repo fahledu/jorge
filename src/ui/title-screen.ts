@@ -1,16 +1,6 @@
 import type { EventBus } from "../game/events.ts";
+import { element } from "./dom.ts";
 import { strings } from "./strings.ts";
-
-function element<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  className: string,
-  text?: string,
-): HTMLElementTagNameMap[K] {
-  const node = document.createElement(tag);
-  node.className = className;
-  if (text !== undefined) node.textContent = text;
-  return node;
-}
 
 /** Title screen, first visit (mockup "Título"). Emits `playRequested` and hides itself. */
 export function mountTitleScreen(root: HTMLElement, bus: EventBus): void {

@@ -1,7 +1,11 @@
 import Phaser from "phaser";
+import { CommandState } from "../domain/commands.ts";
+import { GRAVITY, PHYSICS_FPS } from "../domain/physics.ts";
 import { computeScale, GAME_HEIGHT, GAME_WIDTH } from "../domain/scale.ts";
+import type { EventBus } from "./events.ts";
+import { attachKeyboard } from "./input/keyboard.ts";
 import { loadLevel } from "./levels.ts";
-import { LevelScene } from "./scenes/level-scene.ts";
+import { LevelScene, type LevelSceneData } from "./scenes/level-scene.ts";
 
 export interface GameHandle {
   /** Loads level 1 (on demand, ADR 0005), starts it and shows the canvas. */
@@ -15,6 +19,7 @@ export interface GameHandle {
  */
 export function createGame(
   parent: HTMLElement,
+  bus: EventBus,
   label: string,
   levelLabel: (levelNumber: number) => string,
 ): GameHandle {
@@ -28,6 +33,11 @@ export function createGame(
     roundPixels: true,
     banner: false,
     scale: { mode: Phaser.Scale.NONE },
+    // Fixed step: the domain's jump model steps the same way (domain/physics.ts).
+    physics: {
+      default: "arcade",
+      arcade: { gravity: { x: 0, y: GRAVITY }, fps: PHYSICS_FPS, fixedStep: true },
+    },
   });
 
   const fit = (): void => {
@@ -53,6 +63,33 @@ export function createGame(
   });
   new ResizeObserver(fit).observe(parent);
 
+  const commands = new CommandState();
+  const keyboard = attachKeyboard(commands);
+  const controls = {
+    commands,
+    setEnabled: (enabled: boolean) => (enabled ? keyboard.enable() : keyboard.disable()),
+  };
+
+  const levelScene = (): LevelScene | null => {
+    const scene = game.scene.getScene("level");
+    return scene instanceof LevelScene ? scene : null;
+  };
+  // Focus lost: the browser sends no keyup for keys still held, so pausing also lets go.
+  const pauseOnFocusLoss = (): void => levelScene()?.pauseLevel();
+  window.addEventListener("blur", pauseOnFocusLoss);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") pauseOnFocusLoss();
+  });
+
+  if (import.meta.env.DEV) {
+    void import("./debug/fps-meter.ts").then(({ mountFpsMeter }) =>
+      mountFpsMeter(parent, () => game.loop.actualFps),
+    );
+  }
+  if (import.meta.env.MODE === "e2e") {
+    void import("./test-hooks.ts").then(({ installTestHooks }) => installTestHooks(levelScene));
+  }
+
   let started = false;
   return {
     start() {
@@ -62,7 +99,8 @@ export function createGame(
         (level) => {
           parent.hidden = false;
           game.canvas.setAttribute("aria-label", levelLabel(level.info.levelNumber));
-          game.scene.add("level", LevelScene, true, { level });
+          const data: LevelSceneData = { level, bus, controls, attempt: 1 };
+          game.scene.add("level", LevelScene, true, data);
           fit();
         },
         (error: unknown) => {

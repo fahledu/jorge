@@ -90,7 +90,7 @@ pnpm levels:build                            # gera as fases em levels/generated
 pnpm levels:preview <arquivo>                # prévia em PNG em .preview/ (--sheet: folha numerada)
 pnpm levels:check                            # confere as 100 fases (nasce no 1g)
 pnpm build                                   # build de produção
-pnpm e2e                                     # Playwright com axe (refaz o build; preview em 5191)
+pnpm e2e                                     # Playwright com axe (refaz o build de modo e2e, com o atalho de teste; preview em 5191)
 pnpm audit --prod --audit-level high         # auditoria de dependências
 ```
 
