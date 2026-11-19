@@ -6,8 +6,7 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
 
 - **Última atualização:** 2026-11-18
 - **Fase:** Fase 1 (MVP).
-- **Próximo passo:** rodada à mão do 1c no Firefox (`docs/ROTEIRO-TESTE.md`; Edge já
-  passou); depois o item **1d**: `/feature 1d`.
+- **Próximo passo:** item **1d** do roadmap: `/feature 1d`.
 
 ## Feito
 
@@ -38,8 +37,8 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
   queda fica em `stepMovement` (o `maxVelocity` do Arcade limita os dois sentidos e
   cortaria o pulo); `src/domain/geometry.ts` novo (bandeira e posições); a cena chama
   `resetFlags()` a cada passo (os passos extras do quadro não reiniciam `blocked.down`); o
-  personagem da folha olha de frente, o espelho quase não aparece. **Pendente:** a rodada
-  à mão no Firefox (Edge feito: fase 1 concluída, 115 fps de média).
+  personagem da folha olha de frente, o espelho quase não aparece. Rodada à mão no Edge
+  (fase 1 concluída, 115 fps de média); Firefox não verificado (sem o navegador).
 
 ## Limites aceitos
 
