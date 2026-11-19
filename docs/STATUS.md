@@ -6,7 +6,7 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
 
 - **Última atualização:** 2026-11-19
 - **Fase:** Fase 1 (MVP).
-- **Próximo passo:** item **1e** do roadmap: `/feature 1e`.
+- **Próximo passo:** item **1f** do roadmap: `/feature 1f`.
 
 ## Feito
 
@@ -47,6 +47,14 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
   Rodada à mão na fase 1 no Edge (concluída, 120 fps; mortes, dano, coleta e pausa
   conferidos). Corrigidos depois: o personagem olhava para o lado oposto ao andar (a folha
   olha para a esquerda) e reduzir efeitos só era lido ao abrir (agora acompanha o sistema).
+- 1e: inimigos. `enemies.ts` (trilho calculado do terreno, sem corpo do Arcade; pisão,
+  caixas, efeito de derrota), `attempt.ts` com pisão e contagem por tipo para o 1f,
+  quique, conferência de spawn de inimigo no build; casos-limite nos ADRs 0006 e 0012.
+  Fase 1 refeita com 180 tiles, um elemento por vez. Atalho de teste com `enemies()`,
+  `freezeEnemies()` e `level()`; E2E do 1c e do 1d leem as células por `level()`.
+  Desvios do plano: `ENEMY_SPEED` no `domain`; o teste do espinho roda dentro da página
+  (era instável sob carga). Rodada à mão na fase 1 no Edge (concluída, 118 fps; pisão e
+  morte em todos os inimigos).
 
 ## Limites aceitos
 
@@ -68,8 +76,11 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
 
 ## Questões em aberto
 
-- No 1g: a cena aloca arrays e objetos a cada passo (contatos, `stepAttempt`); com
-  fases de muitos itens, evitar (revisão do 1d).
+- No 1g: a cena aloca arrays e objetos a cada passo (contatos, `stepAttempt`, inimigos);
+  com fases de muitos itens, evitar (revisões do 1d e do 1e).
+- No 1g: os E2E de queda usam a coluna 38 fixa (vão da fase 1), porque `level()` não
+  expõe o terreno; expor os vãos quando a fase mudar. O efeito de derrota com reduzir
+  efeitos não tem E2E (só unidade e roteiro).
 
 - Confirmar: sem analytics nem rastreio de qualquer tipo (suposição do ADR 0007); a
   hipótese do MVP é medida por teste com 5 pessoas (`docs/ROADMAP.md`).

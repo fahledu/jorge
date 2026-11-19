@@ -100,9 +100,10 @@ test("a tapped jump stays under 2 tiles", async ({ page }) => {
   expect(risePx).toBeGreaterThan(0);
 });
 
+// Column 38 is the first gap of level 1 (levels/manual/001.tmj).
 test("falling out of the map restarts the level at the start", async ({ page }) => {
   const start = await page.evaluate(() => window.__jorgeTest?.player());
-  await page.evaluate(() => window.__jorgeTest?.placePlayer(15, 10));
+  await page.evaluate(() => window.__jorgeTest?.placePlayer(38, 10));
   await page.waitForFunction(() => window.__jorgeTest?.state().attempt === 2);
   await page.waitForFunction(() => window.__jorgeTest?.state().status === "playing");
   const player = await page.evaluate(() => window.__jorgeTest?.player());

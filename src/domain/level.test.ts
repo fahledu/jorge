@@ -140,6 +140,7 @@ describe("buildManualLevel", () => {
       flag: { x: 98 * 18 + 9, y: 207 },
       items: [],
       spikes: [],
+      enemies: [],
     });
   });
 });
@@ -169,22 +170,35 @@ describe("readLevelInfo", () => {
     expect(() => readLevelInfo(file)).toThrow(/"start"/);
   });
 
-  it("reads the coins, hearts, springs and spikes of level 1", () => {
+  it("reads the items, spikes and enemies of level 1", () => {
     const tmj = JSON.parse(readFileSync("levels/manual/001.tmj", "utf8"));
-    const info = readLevelInfo(JSON.parse(buildManualLevel(input(mapOf(tmj))).json));
+    const built = JSON.parse(buildManualLevel(input(mapOf(tmj))).json);
+    const info = readLevelInfo(built);
     const count = (type: string) => info.items.filter((i) => i.type === type).length;
-    expect(count("coin")).toBe(5);
+    expect(info.widthInTiles).toBe(180);
+    expect(built.properties).toContainEqual({
+      name: "targetTimeSeconds",
+      type: "int",
+      value: 45,
+    });
+    expect(count("coin")).toBe(6);
     expect(count("heart")).toBe(1);
     expect(count("spring")).toBe(1);
     expect(info.items.find((i) => i.type === "spring")).toEqual({
-      id: 5,
+      id: 6,
       type: "spring",
-      x: 729,
+      x: 93 * 18 + 9,
       y: 207,
     });
     expect(info.spikes).toEqual([
-      { col: 51, row: 11 },
-      { col: 52, row: 11 },
+      { col: 75, row: 11 },
+      { col: 81, row: 11 },
+      { col: 82, row: 11 },
+    ]);
+    expect(info.enemies).toEqual([
+      { id: 10, type: "walker", x: 2313, y: 207, row: 11, range: { min: 2204, max: 2422 } },
+      { id: 11, type: "walker", x: 2637, y: 171, row: 9, range: { min: 2564, max: 2710 } },
+      { id: 12, type: "flyer", x: 2997, y: 171, row: 9, range: { min: 2942, max: 3052 } },
     ]);
   });
 

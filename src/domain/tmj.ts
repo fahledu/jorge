@@ -2,7 +2,10 @@
 // ADR 0012 (layers and properties from ADR 0005). Every problem comes back with the file,
 // the layer and the cell, so a wrong file written by an agent is caught by the build.
 import * as z from "zod/mini";
+import { gidOf, SPIKE_TILES } from "./tiles.ts";
 import type { TilesetInfo } from "./tsx.ts";
+
+const SPIKE_GIDS: readonly number[] = SPIKE_TILES.map(gidOf);
 
 /** Tile size in game pixels (ADR 0005). */
 export const TILE_SIZE = 18;
@@ -336,6 +339,9 @@ export function parseTmj(json: unknown, opts: ParseOptions): TmjResult {
   }
 
   const [terrain, decor] = tileData;
+  if (terrain && terrain.length === width * MAP_HEIGHT) {
+    checkEnemySpawns(spawns, terrain, width, fail);
+  }
   if (errors.length > 0 || !terrain || !decor) return { ok: false, errors };
   return { ok: true, map: { kind, width, height: MAP_HEIGHT, terrain, decor, spawns, chunk } };
 }
@@ -388,6 +394,30 @@ function readSpawns(
     spawns.push(spawn);
   }
   return spawns;
+}
+
+/**
+ * An enemy may not start inside the terrain (solid or spike), and a walker needs solid
+ * ground below, or it would float still (ADR 0012).
+ */
+function checkEnemySpawns(
+  spawns: readonly Spawn[],
+  terrain: readonly number[],
+  width: number,
+  fail: (message: string, where?: Omit<TmjError, "file" | "message">) => void,
+): void {
+  const gidAt = (col: number, row: number): number =>
+    row < MAP_HEIGHT ? (terrain[row * width + col] ?? 0) : 0;
+  const isSolid = (gid: number): boolean => gid !== 0 && !SPIKE_GIDS.includes(gid);
+  for (const spawn of spawns) {
+    if (spawn.type !== "walker" && spawn.type !== "flyer") continue;
+    const where = { layer: "spawns", col: spawn.col, row: spawn.row };
+    if (gidAt(spawn.col, spawn.row) !== 0) {
+      fail(`"${spawn.type}" spawn ${spawn.id} is inside the terrain`, where);
+    } else if (spawn.type === "walker" && !isSolid(gidAt(spawn.col, spawn.row + 1))) {
+      fail(`"walker" spawn ${spawn.id} has no solid ground below`, where);
+    }
+  }
 }
 
 /** One line per error, for the build output. */

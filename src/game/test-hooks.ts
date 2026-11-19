@@ -1,7 +1,22 @@
 // E2E shortcut (ADR 0010): imported only when the build mode is `e2e`, so the production
 // build does not contain it (checked by scripts/check-dist.ts).
 import { isInvulnerable } from "../domain/attempt.ts";
-import type { LevelScene, LevelStatus, PlayerSnapshot } from "./scenes/level-scene.ts";
+import { type Cell, cellOf } from "../domain/geometry.ts";
+import type {
+  EnemySnapshot,
+  LevelScene,
+  LevelStatus,
+  PlayerSnapshot,
+} from "./scenes/level-scene.ts";
+
+/** Where things are in the level, in cells, so the tests do not fix columns. */
+export interface LevelCells {
+  start: Cell;
+  flag: Cell;
+  spikes: Cell[];
+  items: (Cell & { id: number; type: string })[];
+  enemies: (Cell & { id: number; type: string })[];
+}
 
 export interface JorgeTestHooks {
   state(): {
@@ -10,8 +25,13 @@ export interface JorgeTestHooks {
     hearts: number;
     coins: number;
     invulnerable: boolean;
+    defeatedWalkers: number;
+    defeatedFlyers: number;
   };
   player(): PlayerSnapshot | null;
+  enemies(): EnemySnapshot[];
+  freezeEnemies(frozen: boolean): void;
+  level(): LevelCells | null;
   placePlayer(col: number, row: number): void;
   goToFlag(): void;
 }
@@ -31,18 +51,45 @@ export function installTestHooks(levelScene: () => LevelScene | null): void {
     state() {
       const scene = levelScene();
       if (!scene?.sys.settings.data) {
-        return { status: "title", attempt: 0, hearts: 3, coins: 0, invulnerable: false };
+        return {
+          status: "title",
+          attempt: 0,
+          hearts: 3,
+          coins: 0,
+          invulnerable: false,
+          defeatedWalkers: 0,
+          defeatedFlyers: 0,
+        };
       }
-      const { hearts, coins } = scene.attemptState;
+      const { hearts, coins, defeatedWalkers, defeatedFlyers } = scene.attemptState;
       return {
         status: scene.status,
         attempt: scene.attempt,
         hearts,
         coins,
         invulnerable: isInvulnerable(scene.attemptState),
+        defeatedWalkers,
+        defeatedFlyers,
       };
     },
     player: () => playing()?.playerSnapshot() ?? null,
+    enemies: () => playing()?.enemySnapshots() ?? [],
+    freezeEnemies: (frozen) => levelScene()?.freezeEnemies(frozen),
+    level() {
+      const info = playing()?.levelInfo;
+      if (!info) return null;
+      return {
+        start: cellOf(info.start),
+        flag: cellOf(info.flag),
+        spikes: info.spikes,
+        items: info.items.map((item) => ({ id: item.id, type: item.type, ...cellOf(item) })),
+        enemies: info.enemies.map((enemy) => ({
+          id: enemy.id,
+          type: enemy.type,
+          ...cellOf(enemy),
+        })),
+      };
+    },
     placePlayer: (col, row) => playing()?.placePlayer(col, row),
     goToFlag: () => playing()?.goToFlag(),
   };

@@ -1,12 +1,17 @@
 import { expect, type Page, test } from "@playwright/test";
+import type { Cell } from "../src/domain/geometry.ts";
 import { TILE_SIZE } from "../src/domain/tmj.ts";
 import { watchProblems } from "./problems.ts";
 
-// Level 1 (levels/manual/001.tmj): spikes at (51, 11) and (52, 11), a coin at (8, 10),
-// the spring at (40, 11), the heart at (45, 6) on the platform of row 7.
-const SPIKE = { col: 51, row: 11 } as const;
+/** Column of the first gap of level 1 (levels/manual/001.tmj). */
+const GAP_COL = 38;
 
 let problems: string[] = [];
+// Cells of level 1, read from the test hook (no fixed columns).
+let SPIKE: Cell;
+let COIN: Cell;
+let HEART: Cell;
+let SPRING: Cell;
 
 test.beforeEach(async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "keyboard only; touch arrives in item 1k");
@@ -16,6 +21,19 @@ test.beforeEach(async ({ page }, testInfo) => {
   await page.waitForFunction(
     () => window.__jorgeTest?.state().status === "playing" && window.__jorgeTest.player()?.onGround,
   );
+  const level = await page.evaluate(() => window.__jorgeTest?.level());
+  if (!level) throw new Error("level cells not available");
+  const item = (type: string): Cell => {
+    const found = level.items.find((candidate) => candidate.type === type);
+    if (!found) throw new Error(`level 1 has no ${type}`);
+    return found;
+  };
+  const [spike] = level.spikes;
+  if (!spike) throw new Error("level 1 has no spike");
+  SPIKE = spike;
+  COIN = item("coin");
+  HEART = item("heart");
+  SPRING = item("spring");
 });
 
 test.afterEach(() => {
@@ -49,28 +67,42 @@ async function hitSpike(page: Page): Promise<void> {
 }
 
 test("a spike hurts and pushes away; a second touch while blinking does not", async ({ page }) => {
-  await place(page, SPIKE.col, SPIKE.row);
-  // Right on top of the spike and looking right: pushed to the left.
-  await page.waitForFunction(() => (window.__jorgeTest?.player()?.vx ?? 0) < 0);
-  expect(await state(page)).toMatchObject({ hearts: 2, invulnerable: true });
-
-  // Back on the spike a few frames after the hit (well inside the 1.5 s even on a slow
-  // machine): the hearts seen over the next 5 frames stay at 2.
-  const hearts = await page.evaluate(
-    ([col, row]) =>
-      new Promise<number[]>((resolve) => {
-        window.__jorgeTest?.placePlayer(col, row);
-        const seen: number[] = [];
+  // All in the page, frame by frame: round trips to the test runner may take longer than
+  // the 1.5 s of invulnerability on a loaded machine.
+  const result = await page.evaluate(
+    ([col, row, size]) =>
+      new Promise<{ pushedLeft: boolean; invulnerable: boolean; hearts: number[] }>((resolve) => {
+        const hooks = window.__jorgeTest;
+        hooks?.placePlayer(col, row);
+        const centre = (col + 0.5) * size;
+        let pushedLeft = false;
+        let invulnerable = false;
+        const hearts: number[] = [];
         const tick = (): void => {
-          seen.push(window.__jorgeTest?.state().hearts ?? -1);
-          if (seen.length >= 5) resolve(seen);
-          else requestAnimationFrame(tick);
+          const state = hooks?.state();
+          if (!pushedLeft) {
+            // Right on top of the spike and looking right: pushed to the left. Checked by
+            // where the player goes, not by vx: one slow frame may hold the whole push.
+            if (state?.hearts === 2 && (hooks?.player()?.x ?? centre) < centre) {
+              pushedLeft = true;
+              invulnerable = state.invulnerable;
+              // Back on the spike right after the hit: the next 5 frames stay at 2.
+              hooks?.placePlayer(col, row);
+            }
+          } else {
+            hearts.push(state?.hearts ?? -1);
+            if (hearts.length >= 5) {
+              resolve({ pushedLeft, invulnerable, hearts });
+              return;
+            }
+          }
+          requestAnimationFrame(tick);
         };
         requestAnimationFrame(tick);
       }),
-    [SPIKE.col, SPIKE.row] as const,
+    [SPIKE.col, SPIKE.row, TILE_SIZE] as const,
   );
-  expect(hearts).toEqual([2, 2, 2, 2, 2]);
+  expect(result).toEqual({ pushedLeft: true, invulnerable: true, hearts: [2, 2, 2, 2, 2] });
 
   // Still on the spike once the blinking ends: it hurts again (plan 1d, decision 2).
   await page.waitForFunction(() => window.__jorgeTest?.state().hearts === 1);
@@ -78,14 +110,14 @@ test("a spike hurts and pushes away; a second touch while blinking does not", as
 });
 
 test("the player does not stand on a spike", async ({ page }) => {
-  await page.evaluate(() => window.__jorgeTest?.placePlayer(51, 9));
+  await place(page, SPIKE.col, SPIKE.row - 2);
   await page.waitForFunction(() => window.__jorgeTest?.player()?.onGround);
   // Down on the ground row below the spike, not on top of it.
   expect((await page.evaluate(() => window.__jorgeTest?.player()))?.bottom).toBe(12 * TILE_SIZE);
 });
 
 test("0 hearts turns into the angel, then restarts with everything back", async ({ page }) => {
-  await place(page, 8, 10);
+  await place(page, COIN.col, COIN.row);
   await page.waitForFunction(() => window.__jorgeTest?.state().coins === 1);
   for (let hit = 0; hit < 3; hit += 1) await hitSpike(page);
   await page.waitForFunction(() => window.__jorgeTest?.state().status === "dying");
@@ -98,7 +130,7 @@ test("0 hearts turns into the angel, then restarts with everything back", async 
 });
 
 test("falling out of the map also shows the angel before restarting", async ({ page }) => {
-  await place(page, 15, 10);
+  await place(page, GAP_COL, 10);
   await page.waitForFunction(() => window.__jorgeTest?.state().status === "dying");
   await page.waitForFunction(() => window.__jorgeTest?.state().attempt === 2);
 });
@@ -136,22 +168,22 @@ test("the pause freezes the invulnerability", async ({ page }) => {
 });
 
 test("a coin disappears and counts once", async ({ page }) => {
-  await place(page, 8, 10);
+  await place(page, COIN.col, COIN.row);
   await page.waitForFunction(() => window.__jorgeTest?.state().coins === 1);
-  await place(page, 8, 10);
+  await place(page, COIN.col, COIN.row);
   await frames(page, 5);
   expect((await state(page))?.coins).toBe(1);
 });
 
 test("a heart gives one back, up to 3", async ({ page }) => {
-  await place(page, 45, 6);
+  await place(page, HEART.col, HEART.row);
   await frames(page, 5);
   expect((await state(page))?.hearts).toBe(3);
 
   await place(page, SPIKE.col, SPIKE.row);
   await page.waitForFunction(() => window.__jorgeTest?.state().hearts === 2);
-  // The heart of this attempt was consumed at 3: the platform is empty now.
-  await place(page, 45, 6);
+  // The heart of this attempt was consumed at 3: its cell is empty now.
+  await place(page, HEART.col, HEART.row);
   await frames(page, 5);
   expect((await state(page))?.hearts).toBe(2);
 });
@@ -159,12 +191,12 @@ test("a heart gives one back, up to 3", async ({ page }) => {
 test("a heart picked with 2 hearts gives 3", async ({ page }) => {
   await place(page, SPIKE.col, SPIKE.row);
   await page.waitForFunction(() => window.__jorgeTest?.state().hearts === 2);
-  await place(page, 45, 6);
+  await place(page, HEART.col, HEART.row);
   await page.waitForFunction(() => window.__jorgeTest?.state().hearts === 3);
 });
 
 test("the spring launches well above a jump, with no key held", async ({ page }) => {
-  await place(page, 40, 11);
+  await place(page, SPRING.col, SPRING.row);
   const sample = await page.evaluate(
     () =>
       new Promise<{ minVy: number; risePx: number }>((resolve) => {

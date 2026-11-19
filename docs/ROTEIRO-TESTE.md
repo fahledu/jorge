@@ -27,9 +27,16 @@ Para cada fase **1, 10, 50 e 100**, no notebook (teclado) e no celular (toque):
 - Perigos e coletáveis: o espinho tira 1 coração do topo, empurra e faz piscar; tocar
   outro espinho piscando não tira coração; com 0 corações (ou caindo num buraco) o
   personagem vira anjinho e sobe até sair da tela, e a fase recomeça com tudo de volta;
-  a mola leva até o coração da plataforma alta; moedas e coração somem ao serem pegos.
+  a mola leva até a plataforma alta das moedas; moedas e coração somem ao serem pegos.
   Com "Reduzir efeitos" do sistema ligado: transparência fixa em vez de piscar, e o
   anjinho some parado no lugar.
+- Inimigos: o andador vai e volta, virando na parede e na beira da mesa; o voador vai e
+  volta no ar. Cair em cima derrota (vira de cabeça para baixo e cai para fora da tela) e
+  faz quicar, nos dois; encostar de lado ou bater por baixo tira 1 coração e empurra;
+  piscando, encostar não fere, mas o pisão vale; o derrotado não volta até a fase
+  recomeçar. Com "Reduzir efeitos": o derrotado some parado, de cabeça para baixo.
+- Fase 1: aparecem um de cada vez, nesta ordem, o pulo, o vão, a moeda, o espinho, a mola,
+  o coração, o andador e o voador. Anote se a fase ainda parece curta.
 - Imagem: pixels nítidos (sem borrão), sem faixas pretas fora do lugar, sem tremor da
   câmera com "Reduzir efeitos" ligado.
 - **Fps:** com o contador, fique 30 s numa parte movimentada da fase e anote a média.
@@ -41,3 +48,4 @@ Para cada fase **1, 10, 50 e 100**, no notebook (teclado) e no celular (toque):
 |---|---|---|---|---|---|---|
 | 2026-11-18 | 1c | Notebook, Edge (Chromium), monitor de 120 Hz | 1 | sim | 115 | Plataforma da linha 7 fora do pulo, como previsto (mola, 1d). Fase curta demais: alongar no 1e. |
 | 2026-11-19 | 1d | Notebook, Edge (Chromium), monitor de 120 Hz | 1 | sim | 120 | Morte em todos os buracos e por 0 corações no espinho; piscando, o espinho não fere; coração da plataforma recuperou 1; moedas coletadas; pausa com Esc e P. "Reduzir efeitos" sem efeito (lido só ao abrir; agora acompanha o sistema) e personagem olhando para o lado oposto ao andar: corrigidos depois e conferidos à mão no mesmo dia. |
+| 2026-11-19 | 1e | Notebook, Edge (Chromium), monitor de 120 Hz | 1 (180 tiles) | sim, cerca de 4 vezes | 118 | Pisão e morte testados em todos os inimigos (mortes forçadas de propósito). Tamanho da fase 1 melhor. |

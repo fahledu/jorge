@@ -223,3 +223,5 @@ sai desta lista, e o descartado também.
 - Outros idiomas (fora do MVP)
 - Fundo diferente por fase ou por tier (fora de escopo do plano 1b)
 - Plataformas atravessáveis por baixo (fora de escopo do plano 1c)
+- Voador com trajetória vertical ou em onda (fora de escopo do plano 1e)
+- Quique mais alto ao pisar no inimigo segurando o pulo (fora de escopo do plano 1e)

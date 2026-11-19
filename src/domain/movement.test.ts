@@ -7,6 +7,7 @@ import {
   springBounce,
   springLaunches,
   stepMovement,
+  stompBounce,
 } from "./movement.ts";
 import { JUMP_SPEED, RUN_SPEED, SPRING_SPEED, STEP_MS } from "./physics.ts";
 
@@ -158,10 +159,10 @@ describe("spring", () => {
 
 describe("springLaunches", () => {
   it("launches when not rising and not hurt", () => {
-    expect(springLaunches(0, false)).toBe(true);
-    expect(springLaunches(120, false)).toBe(true);
-    expect(springLaunches(-1, false)).toBe(false);
-    expect(springLaunches(0, true)).toBe(false);
+    expect(springLaunches(0, false, false)).toBe(true);
+    expect(springLaunches(120, false, false)).toBe(true);
+    expect(springLaunches(-1, false, false)).toBe(false);
+    expect(springLaunches(0, true, false)).toBe(false);
   });
 });
 
@@ -172,5 +173,20 @@ describe("knockback in the middle of a jump", () => {
     const after = repeat(knockback(1).state, 15, { jump: true, vy: -240 });
     expect(rising.cuttable).toBe(true);
     expect(step(after, { vy: -240 }).vy).toBe(-240);
+  });
+});
+
+describe("stompBounce (plan 1e)", () => {
+  it("bounces up keeping vx, with no cut and no jump in the air", () => {
+    const bounce = stompBounce(110);
+    expect(bounce.vx).toBe(110);
+    expect(bounce.vy).toBe(-300);
+    const air = { ...idle, right: true, vy: -280 };
+    expect(stepMovement(bounce.state, air, STEP_MS).vy).toBe(-280);
+    const pressed = { ...air, jump: true, jumpPressed: true };
+    expect(stepMovement(bounce.state, pressed, STEP_MS).vy).toBe(-280);
+  });
+  it("no spring launch in a step with a stomp", () => {
+    expect(springLaunches(100, false, true)).toBe(false);
   });
 });

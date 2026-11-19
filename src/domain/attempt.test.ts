@@ -10,7 +10,7 @@ import {
 } from "./attempt.ts";
 import { STEP_MS } from "./physics.ts";
 
-const none: AttemptContacts = { items: [], hazard: false, flag: false };
+const none: AttemptContacts = { items: [], enemies: [], hazard: false, flag: false };
 const spike: AttemptContacts = { ...none, hazard: true };
 
 function step(state: AttemptState, contacts: Partial<AttemptContacts> = {}) {
@@ -146,5 +146,95 @@ describe("invulnerability opacity", () => {
       last = alpha;
     }
     expect(changes).toBeLessThanOrEqual(4);
+  });
+});
+
+describe("enemies (ADR 0006, plan 1e)", () => {
+  const walker = (id: number, stomp: boolean) => ({ id, type: "walker" as const, stomp });
+  const flyer = (id: number, stomp: boolean) => ({ id, type: "flyer" as const, stomp });
+
+  it("a stomp defeats the enemy once, with no damage", () => {
+    const first = step(initialAttempt(), { enemies: [walker(7, true)] });
+    expect(first.state.defeated).toEqual([7]);
+    expect(first.state.defeatedWalkers).toBe(1);
+    expect(first.state.hearts).toBe(3);
+    expect(first.stomped).toBe(true);
+    expect(first.defeated).toEqual([walker(7, true)]);
+    const again = step(first.state, { enemies: [walker(7, true)] });
+    expect(again.state.defeatedWalkers).toBe(1);
+    expect(again.defeated).toEqual([]);
+    expect(again.stomped).toBe(false);
+  });
+
+  it("a defeated enemy no longer hurts in the attempt", () => {
+    const first = step(initialAttempt(), { enemies: [walker(7, true)] });
+    const touch = step(first.state, { enemies: [walker(7, false)] });
+    expect(touch.hurt).toBe(false);
+    expect(touch.state.hearts).toBe(3);
+  });
+
+  it("a touch without a stomp hurts; not again while invulnerable", () => {
+    const hit = step(initialAttempt(), { enemies: [walker(1, false)] });
+    expect(hit.hurt).toBe(true);
+    expect(hit.state.hearts).toBe(2);
+    expect(isInvulnerable(hit.state)).toBe(true);
+    const again = step(hit.state, { enemies: [walker(1, false)] });
+    expect(again.hurt).toBe(false);
+    expect(again.state.hearts).toBe(2);
+  });
+
+  it("a stomp still defeats while invulnerable", () => {
+    const hit = step(initialAttempt(), spike);
+    const stomp = step(hit.state, { enemies: [flyer(3, true)] });
+    expect(stomp.state.defeatedFlyers).toBe(1);
+    expect(stomp.state.hearts).toBe(2);
+    expect(stomp.stomped).toBe(true);
+  });
+
+  it("a spike and a walker in the same step take one heart", () => {
+    const result = step(initialAttempt(), { hazard: true, enemies: [walker(1, false)] });
+    expect(result.state.hearts).toBe(2);
+  });
+
+  it("a spike, then a walker 1000 ms later: only the first takes a heart", () => {
+    const hit = step(initialAttempt(), spike);
+    const later = step(wait(hit.state, 59), { enemies: [walker(1, false)] });
+    expect(later.hurt).toBe(false);
+    expect(later.state.hearts).toBe(2);
+  });
+
+  it("stomping one and touching another from the side: defeats one and hurts", () => {
+    const result = step(initialAttempt(), { enemies: [walker(1, true), walker(2, false)] });
+    expect(result.state.defeated).toEqual([1]);
+    expect(result.stomped).toBe(true);
+    expect(result.hurt).toBe(true);
+    expect(result.state.hearts).toBe(2);
+  });
+
+  it("two stomps in one step defeat both", () => {
+    const result = step(initialAttempt(), { enemies: [walker(1, true), flyer(2, true)] });
+    expect(result.state.defeatedWalkers).toBe(1);
+    expect(result.state.defeatedFlyers).toBe(1);
+  });
+
+  it("the flag and a stomp: completed and counted; the flag and a touch: no damage", () => {
+    const stomp = step(initialAttempt(), { flag: true, enemies: [walker(1, true)] });
+    expect(stomp.outcome).toBe("completed");
+    expect(stomp.state.defeatedWalkers).toBe(1);
+    const touch = step(initialAttempt(), { flag: true, enemies: [walker(1, false)] });
+    expect(touch.outcome).toBe("completed");
+    expect(touch.state.hearts).toBe(3);
+  });
+
+  it("one heart and a touch: dead", () => {
+    const state = { ...initialAttempt(), hearts: 1 };
+    expect(step(state, { enemies: [flyer(1, false)] }).outcome).toBe("dead");
+  });
+
+  it("a new attempt has no defeated enemies", () => {
+    const state = initialAttempt();
+    expect(state.defeated).toEqual([]);
+    expect(state.defeatedWalkers).toBe(0);
+    expect(state.defeatedFlyers).toBe(0);
   });
 });

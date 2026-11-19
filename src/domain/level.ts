@@ -2,7 +2,8 @@
 // with the tileset embedded and the level properties, in a canonical serialization so the
 // same source always gives the same bytes and the same `contentHash`.
 import * as z from "zod/mini";
-import { type Cell, cellsWith } from "./geometry.ts";
+import { type EnemyType, type PatrolRange, patrolRange } from "./enemies.ts";
+import { type Cell, cellOf, cellsWith } from "./geometry.ts";
 import { gidOf, SPIKE_TILES } from "./tiles.ts";
 import { MAP_HEIGHT, TILE_SIZE, type TmjMap } from "./tmj.ts";
 import type { TilesetInfo } from "./tsx.ts";
@@ -189,6 +190,19 @@ export interface LevelInfo {
   items: LevelItem[];
   /** Cells of the terrain holding a spike. */
   spikes: Cell[];
+  /** Walkers and flyers with their patrol range (plan 1e). */
+  enemies: LevelEnemy[];
+}
+
+export interface LevelEnemy {
+  /** Id of the spawn in the file: one enemy is defeated once per attempt. */
+  id: number;
+  type: EnemyType;
+  /** Spawn point, centre of a cell. */
+  x: number;
+  y: number;
+  row: number;
+  range: PatrolRange;
 }
 
 export type ItemType = "coin" | "heart" | "spring";
@@ -207,6 +221,10 @@ function isItemType(type: string): type is ItemType {
   return ITEM_TYPES.includes(type);
 }
 
+function isEnemyType(type: string): type is EnemyType {
+  return type === "walker" || type === "flyer";
+}
+
 /**
  * What the game needs from a generated level, checked at the border: the file comes from
  * the build, but a stale tab may load a file from another version (ADR 0011). Only the shape
@@ -219,6 +237,7 @@ export function readLevelInfo(json: unknown): LevelInfo {
   const levelNumber = properties.find((p) => p.name === "levelNumber")?.value;
   if (typeof levelNumber !== "number") throw new Error("level file has no levelNumber");
   const objects = layers.find((l) => l.name === "spawns")?.objects ?? [];
+  const terrain = layers.find((l) => l.name === "terrain")?.data ?? [];
   const point = (type: string): { x: number; y: number } => {
     const found = objects.find((o) => o.type === type);
     if (!found) throw new Error(`level ${levelNumber} has no "${type}" spawn`);
@@ -233,10 +252,12 @@ export function readLevelInfo(json: unknown): LevelInfo {
     items: objects.flatMap((o) =>
       isItemType(o.type) ? [{ id: o.id, type: o.type, x: o.x, y: o.y }] : [],
     ),
-    spikes: cellsWith(
-      layers.find((l) => l.name === "terrain")?.data ?? [],
-      width,
-      SPIKE_TILES.map(gidOf),
-    ),
+    spikes: cellsWith(terrain, width, SPIKE_TILES.map(gidOf)),
+    enemies: objects.flatMap((o) => {
+      if (!isEnemyType(o.type)) return [];
+      const cell = cellOf(o);
+      const range = patrolRange(o.type, cell, terrain, width);
+      return [{ id: o.id, type: o.type, x: o.x, y: o.y, row: cell.row, range }];
+    }),
   };
 }

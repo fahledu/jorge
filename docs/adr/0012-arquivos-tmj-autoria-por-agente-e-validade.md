@@ -39,6 +39,9 @@ não muda nenhuma decisão dele.
   `flag`, `walker`, `flyer`, `coin`, `heart`, `spring`. O ponto fica dentro do mapa; a
   célula do spawn é `floor(x / 18)`, `floor(y / 18)`. Propriedade opcional `minTier`
   (int, 1 a 10) só em `walker`, `flyer`, `coin`, `heart` e `spring`.
+- **Spawn de inimigo:** a célula de um `walker` ou `flyer` não é sólida nem espinho, e a
+  célula abaixo de um `walker` é sólida (espinho não conta). Vale para fases manuais e
+  trechos.
 - **Início e bandeira:** fase manual tem exatamente um `start` e um `flag`. Trecho só
   tem `start` se tiver a tag `start`, e só tem `flag` se tiver a tag `finish` (um de
   cada); os demais trechos não têm nenhum.
@@ -78,6 +81,8 @@ não muda nenhuma decisão dele.
 - O mesmo `.tmj` reformatado (outra indentação e ordem de chaves, como o Tiled salva)
   → mesma saída byte a byte e mesmo `contentHash`.
 - `source` do tileset apontando para `tileset-characters.tsx` → build falha.
+- `walker` com a célula de baixo vazia ou com espinho, ou `flyer` dentro de terreno →
+  build falha com arquivo, camada, coluna e linha. `walker` sobre chão → aceito.
 
 ## Descartado
 - **Dono desenhando no Tiled:** decisão do usuário.

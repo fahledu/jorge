@@ -10,6 +10,7 @@ import {
   MAX_FALL_SPEED,
   RUN_SPEED,
   SPRING_SPEED,
+  STOMP_BOUNCE_SPEED,
 } from "./physics.ts";
 
 /** Tolerance for timers counted down in steps of 1000/60 ms. */
@@ -109,7 +110,15 @@ export function springBounce(vx: number): MovementStep {
   };
 }
 
-/** A spring launches a player that is not rising and was not hurt this step (plan 1d). */
-export function springLaunches(vy: number, hurt: boolean): boolean {
-  return !hurt && vy >= 0;
+/** Bounce off a stomped enemy (plan 1e, decision 7): like the spring, lower. */
+export function stompBounce(vx: number): MovementStep {
+  return { ...springBounce(vx), vy: -STOMP_BOUNCE_SPEED };
+}
+
+/**
+ * A spring launches a player that is not rising and was neither hurt nor bounced off an
+ * enemy this step (ADR 0006: hurt, then stomp, then spring).
+ */
+export function springLaunches(vy: number, hurt: boolean, stomped: boolean): boolean {
+  return !hurt && !stomped && vy >= 0;
 }

@@ -38,6 +38,8 @@ export const KNOCKBACK_SPEED_Y = 250;
 export const KNOCKBACK_MS = 250;
 /** Upward speed a spring gives, px/s (about 7 tiles high). */
 export const SPRING_SPEED = 520;
+/** Upward speed after stomping an enemy, px/s (about 2.5 tiles; plan 1e). */
+export const STOMP_BOUNCE_SPEED = 300;
 /** Player's collision box inside its 24×24 frame, flush with the bottom of the frame. */
 export const PLAYER_BODY = { width: 14, height: 20, frameSize: 24 } as const;
 

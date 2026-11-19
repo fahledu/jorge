@@ -142,6 +142,40 @@ describe("parseTmj: cases of ADR 0012", () => {
     expect(messages(map)).toMatch(/expected 1 "flag" spawn\(s\), found 0/);
   });
 
+  describe("enemy spawns (ADR 0012)", () => {
+    const withEnemy = (type: "walker" | "flyer", y: number) =>
+      makeMap(27, {
+        spawns: [
+          { type: "start", x: 9, y: 207 },
+          { type: "flag", x: 400, y: 207 },
+          { type, x: 99, y },
+        ],
+      });
+
+    it("accepts a walker on the ground", () => {
+      expect(parse(withEnemy("walker", 207)).ok).toBe(true);
+    });
+
+    it("rejects a walker with nothing below, with column and row", () => {
+      const map = withEnemy("walker", 207);
+      const terrain = terrainOf(map);
+      for (let row = 12; row < 15; row += 1) terrain[row * 27 + 5] = 0;
+      const [error] = errorsOf(map);
+      expect(error).toMatchObject({ layer: "spawns", col: 5, row: 11 });
+      expect(error?.message).toMatch(/"walker" spawn \d+ has no solid ground below/);
+    });
+
+    it("rejects a walker standing on a spike", () => {
+      const map = withEnemy("walker", 207);
+      terrainOf(map)[12 * 27 + 5] = 69;
+      expect(messages(map)).toMatch(/no solid ground below/);
+    });
+
+    it("rejects a flyer inside the terrain", () => {
+      expect(messages(withEnemy("flyer", 225))).toMatch(/"flyer" spawn \d+ is inside the terrain/);
+    });
+  });
+
   it("rejects two starts", () => {
     const map = makeMap(27, {
       spawns: [

@@ -4,6 +4,7 @@ import backgroundsUrl from "../../../assets/kenney/Tilemap/tilemap-backgrounds_p
 import charactersUrl from "../../../assets/kenney/Tilemap/tilemap-characters_packed.png";
 import {
   type AttemptState,
+  type EnemyContact,
   type ItemContact,
   initialAttempt,
   invulnerabilityAlpha,
@@ -12,6 +13,16 @@ import {
 } from "../../domain/attempt.ts";
 import type { CommandFrame, CommandState } from "../../domain/commands.ts";
 import { deathFinished, deathPose } from "../../domain/death.ts";
+import {
+  defeatFinished,
+  defeatPose,
+  ENEMY_SPEED,
+  enemyBox,
+  initialPatrol,
+  isStomp,
+  type PatrolState,
+  stepPatrol,
+} from "../../domain/enemies.ts";
 import {
   cellOf,
   feetIn,
@@ -23,7 +34,7 @@ import {
   spikeBox,
   springBox,
 } from "../../domain/geometry.ts";
-import type { LevelItem } from "../../domain/level.ts";
+import type { LevelEnemy, LevelItem } from "../../domain/level.ts";
 import {
   initialMovement,
   knockback,
@@ -32,6 +43,7 @@ import {
   springBounce,
   springLaunches,
   stepMovement,
+  stompBounce,
 } from "../../domain/movement.ts";
 import { isBelowMap, PLAYER_BODY, STEP_MS } from "../../domain/physics.ts";
 import { GAME_HEIGHT, GAME_WIDTH } from "../../domain/scale.ts";
@@ -45,6 +57,7 @@ import {
   WINGS_TILE,
 } from "../../domain/tiles.ts";
 import { MAP_HEIGHT, TILE_SIZE } from "../../domain/tmj.ts";
+import { Enemy } from "../entities/enemy.ts";
 import { CHARACTERS, Player } from "../entities/player.ts";
 import type { EventBus } from "../events.ts";
 import type { LevelData } from "../levels.ts";
@@ -128,6 +141,26 @@ interface Spring {
   compressedMs: number;
 }
 
+interface EnemyEntry {
+  info: LevelEnemy;
+  patrol: PatrolState;
+  box: Rect;
+  sprite: Enemy;
+  /** Time since it was defeated, ms; null while alive. */
+  defeatedMs: number | null;
+}
+
+/** What the E2E test hooks read about an enemy (ADR 0010). */
+export interface EnemySnapshot {
+  id: number;
+  type: LevelEnemy["type"];
+  x: number;
+  y: number;
+  col: number;
+  row: number;
+  defeated: boolean;
+}
+
 interface Dying {
   elapsedMs: number;
   /** Centre of the player's frame where it died, world px. */
@@ -170,6 +203,9 @@ export class LevelScene extends Phaser.Scene {
   #pickups: Pickup[] = [];
   #springs: Spring[] = [];
   #spikes: Rect[] = [];
+  #enemies: EnemyEntry[] = [];
+  /** Test hook: enemies stand still (kept across restarts). */
+  #enemiesFrozen = false;
   #hearts: Phaser.GameObjects.Image[] = [];
   #shownHearts = -1;
   #dying: Dying | null = null;
@@ -188,6 +224,11 @@ export class LevelScene extends Phaser.Scene {
     return this.#data.attempt;
   }
 
+  /** What the level file holds (spawns, spikes). */
+  get levelInfo(): LevelData["info"] {
+    return this.#data.level.info;
+  }
+
   /** Hearts, coins and invulnerability of the current attempt. */
   get attemptState(): AttemptState {
     return this.#attempt;
@@ -202,6 +243,7 @@ export class LevelScene extends Phaser.Scene {
     this.#pickups = [];
     this.#springs = [];
     this.#spikes = [];
+    this.#enemies = [];
     this.#hearts = [];
     this.#shownHearts = -1;
     this.#dying = null;
@@ -239,6 +281,7 @@ export class LevelScene extends Phaser.Scene {
     this.#flag = flagZone(info.flag);
     this.#createFlag(info.flag);
     this.#createItems(info.items);
+    this.#createEnemies(info.enemies);
 
     const width = info.widthInTiles * TILE_SIZE;
     const height = MAP_HEIGHT * TILE_SIZE;
@@ -310,6 +353,24 @@ export class LevelScene extends Phaser.Scene {
     this.#onGround = false;
   }
 
+  /** Test hook: the enemies of the level, alive or defeated. */
+  enemySnapshots(): EnemySnapshot[] {
+    return this.#enemies.map(({ info, patrol, defeatedMs }) => ({
+      id: info.id,
+      type: info.type,
+      x: patrol.x,
+      y: info.y,
+      col: Math.floor(patrol.x / TILE_SIZE),
+      row: info.row,
+      defeated: defeatedMs !== null,
+    }));
+  }
+
+  /** Test hook: stops or restarts the enemies' patrol. */
+  freezeEnemies(frozen: boolean): void {
+    this.#enemiesFrozen = frozen;
+  }
+
   /** Test hook: stands the player 2 columns left of the flag. */
   goToFlag(): void {
     const { col, row } = cellOf(this.#data.level.info.flag);
@@ -324,6 +385,10 @@ export class LevelScene extends Phaser.Scene {
       return;
     }
     const body = this.#player.body;
+    // The speed that moved the body in this step, before the control changes it (stomp).
+    const movedVy = body.velocity.y;
+    // Enemies move at the start of the step (ADR 0006).
+    this.#stepEnemies();
     this.#onGround = body.blocked.down;
     // Only the first step of a frame resets the flags in Phaser; extra steps would keep
     // `blocked.down` from the step before and let the player jump twice.
@@ -345,12 +410,21 @@ export class LevelScene extends Phaser.Scene {
     }
     const box = { left: body.left, top: body.top, right: body.right, bottom: body.bottom };
     const touchedSpikes = this.#spikes.filter((spike) => overlaps(box, spike));
+    const enemyContacts: (EnemyContact & { box: Rect })[] = this.#enemies
+      .filter((enemy) => enemy.defeatedMs === null && overlaps(box, enemy.box))
+      .map((enemy) => ({
+        id: enemy.info.id,
+        type: enemy.info.type,
+        stomp: isStomp(box, movedVy, enemy.box),
+        box: enemy.box,
+      }));
     const result = stepAttempt(
       this.#attempt,
       {
         items: this.#pickups
           .filter((pickup) => overlaps(box, pickup.box))
           .map((pickup) => pickup.contact),
+        enemies: enemyContacts,
         hazard: touchedSpikes.length > 0,
         flag: overlaps(box, this.#flag),
       },
@@ -359,6 +433,10 @@ export class LevelScene extends Phaser.Scene {
     this.#attempt = result.state;
     for (const item of result.collected) {
       this.#pickups.find((pickup) => pickup.contact.id === item.id)?.image.setVisible(false);
+    }
+    for (const defeated of result.defeated) {
+      const enemy = this.#enemies.find((candidate) => candidate.info.id === defeated.id);
+      if (enemy) enemy.defeatedMs = 0;
     }
     this.#showHearts();
     this.#player.setAlpha(invulnerabilityAlpha(this.#attempt, this.#data.reduceEffects()));
@@ -371,17 +449,24 @@ export class LevelScene extends Phaser.Scene {
       this.#die(false);
       return;
     }
+    // Impulse of the step (ADR 0006): a push wins over the bounce, the bounce over a spring.
     if (result.hurt) {
       const center = (rect: Rect): number => (rect.left + rect.right) / 2;
-      const source = touchedSpikes.reduce((sum, spike) => sum + center(spike), 0);
+      const sources = [
+        ...touchedSpikes,
+        ...enemyContacts.filter((contact) => !contact.stomp).map((contact) => contact.box),
+      ];
+      const source = sources.reduce((sum, rect) => sum + center(rect), 0);
       const direction = knockbackDirection(
         center(box),
-        source / touchedSpikes.length,
+        source / sources.length,
         this.#player.facing,
       );
       this.#apply(knockback(direction));
+    } else if (result.stomped) {
+      this.#apply(stompBounce(control.vx));
     }
-    if (springLaunches(control.vy, result.hurt)) {
+    if (springLaunches(control.vy, result.hurt, result.stomped)) {
       const spring = this.#springs.find((candidate) => overlaps(box, candidate.box));
       if (spring) {
         this.#apply(springBounce(control.vx));
@@ -405,6 +490,25 @@ export class LevelScene extends Phaser.Scene {
         spring.compressedMs = 0;
         spring.image.setFrame(SPRING_TILES.extended);
       }
+    }
+  }
+
+  /** Patrol of the live enemies while playing; the defeat effect of the others. */
+  #stepEnemies(): void {
+    const reduceEffects = this.#data.reduceEffects();
+    for (const enemy of this.#enemies) {
+      if (enemy.defeatedMs !== null) {
+        if (!enemy.sprite.visible) continue;
+        enemy.defeatedMs += STEP_MS;
+        if (defeatFinished(enemy.defeatedMs, reduceEffects)) enemy.sprite.setVisible(false);
+        else enemy.sprite.showDefeat(defeatPose(enemy.defeatedMs, reduceEffects));
+        continue;
+      }
+      if (this.#status !== "playing" || this.#enemiesFrozen) continue;
+      const { type, row, range } = enemy.info;
+      enemy.patrol = stepPatrol(enemy.patrol, range, ENEMY_SPEED[type], STEP_MS);
+      enemy.box = enemyBox(type, enemy.patrol.x, row);
+      enemy.sprite.place(enemy.patrol.x, enemy.patrol.direction);
     }
   }
 
@@ -499,6 +603,21 @@ export class LevelScene extends Phaser.Scene {
         image: this.add.image(x, y, TILES, frame).setOrigin(0, 0),
       });
     }
+  }
+
+  #createEnemies(enemies: readonly LevelEnemy[]): void {
+    this.#enemies = enemies.map((info) => {
+      const patrol = initialPatrol(info.range, info.x);
+      const sprite = new Enemy(this, info.type, patrol.x, info.row);
+      sprite.place(patrol.x, patrol.direction);
+      return {
+        info,
+        patrol,
+        box: enemyBox(info.type, patrol.x, info.row),
+        sprite,
+        defeatedMs: null,
+      };
+    });
   }
 
   /** The HUD band of the mockup, with the hearts only; item 1f adds the rest. */

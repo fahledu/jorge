@@ -5,6 +5,11 @@ export const PLAYER_FRAMES = { idle: 0, walk: 1 } as const;
 /** Direction the character looks in the sheet; the sprite is mirrored for the other. */
 export const PLAYER_FACES_RIGHT = false;
 
+/** Enemies in `tilemap-characters_packed.png`: 2 frames each (plan 1e, decision 11). */
+export const ENEMY_FRAMES = { walker: [18, 19], flyer: [24, 25] } as const;
+/** The enemies' drawings are symmetric; mirrored like the player when going right. */
+export const ENEMY_FACES_RIGHT = false;
+
 /** The flag in `tilemap_packed.png` (18×18): cloth (2 frames) on top of the pole. */
 export const FLAG_TILES = { cloth: [111, 112], pole: 131 } as const;
 
