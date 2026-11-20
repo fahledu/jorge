@@ -29,7 +29,8 @@ Visual e textos da interface: `docs/DESIGN.md` e o tema do código para onde ele
 | Stack e versões | 0003 |
 | Camadas: `domain` puro, entrada abstraída, eventos entre `game` e `ui` | 0004 |
 | Fases: trechos, gerador, curva, validador, `contentHash` | 0013 |
-| Regras do jogo e pontuação | 0006 |
+| Regras do jogo, pontuação, modos livre e desafio | 0014 |
+| Temas visuais por bloco de fases | 0015 |
 | Save e recordes locais | 0007 |
 | Assets de terceiros e licença | 0008 |
 | Interface, controles e acessibilidade | 0009 |

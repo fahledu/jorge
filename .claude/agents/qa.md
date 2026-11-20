@@ -24,7 +24,7 @@ quebrado, não confirmar que está tudo certo.
    progresso uma da outra (ADR 0007). Em toda mudança no gerador ou na física: as 100
    fases continuam passando no `levels:check` (ADR 0013).
 
-Referência: regras do jogo (ADR 0006), save e recordes (ADR 0007), fases (ADR 0013),
+Referência: regras do jogo e modos (ADR 0014), save e recordes (ADR 0007), fases (ADR 0013),
 testes e qualidade (ADR 0010).
 
 ## Tipos de teste

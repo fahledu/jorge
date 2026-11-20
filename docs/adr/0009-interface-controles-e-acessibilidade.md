@@ -62,7 +62,7 @@ Pixel art borrado ou com pixels de tamanhos diferentes fica feio.
 - Segurar esquerda e tocar em pular ao mesmo tempo → os dois comandos valem.
 - Dedo arrastado de "esquerda" para "direita" sem soltar → troca o comando.
 - Teclado e toque ao mesmo tempo → comandos somados; nenhum fica preso ao soltar.
-- Aba escondida no meio da fase → pausa; o relógio do bônus (ADR 0006) não conta.
+- Aba escondida no meio da fase → pausa; o relógio do bônus (ADR 0014) não conta.
 - Celular girado para retrato no meio do pulo → pausa e aviso; volta em pausa.
 
 ## Descartado

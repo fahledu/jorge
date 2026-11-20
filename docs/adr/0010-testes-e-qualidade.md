@@ -10,7 +10,7 @@ engine e do aparelho: E2E de fumaça e teste à mão, com roteiro.
 
 ## Decisão
 - **Unidade (Vitest):** `src/domain` com cobertura de linhas e ramos ≥ 95%, conferida
-  no CI. Os casos-limite dos ADRs 0006, 0007 e 0013 viram testes com os valores deles.
+  no CI. Os casos-limite dos ADRs 0007, 0013 e 0014 viram testes com os valores deles.
 - **Fases:** `pnpm levels:check` no CI (ADR 0013): determinismo, igualdade com os
   arquivos versionados e validador nas 100 fases.
 - **Save:** fixture de cada `schemaVersion` publicada, migrada até a atual (ADR 0007).
