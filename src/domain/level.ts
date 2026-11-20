@@ -182,6 +182,8 @@ const levelFileSchema = z.object({
 export interface LevelInfo {
   levelNumber: number;
   widthInTiles: number;
+  /** Time for the full bonus, written by the build (ADR 0006). */
+  targetTimeSeconds: number;
   /** Name of the embedded tileset, which the scene binds to the sheet's texture. */
   tilesetName: string;
   start: { x: number; y: number };
@@ -236,6 +238,8 @@ export function readLevelInfo(json: unknown): LevelInfo {
   const { width, properties, layers, tilesets } = parsed.data;
   const levelNumber = properties.find((p) => p.name === "levelNumber")?.value;
   if (typeof levelNumber !== "number") throw new Error("level file has no levelNumber");
+  const target = properties.find((p) => p.name === "targetTimeSeconds")?.value;
+  if (typeof target !== "number") throw new Error("level file has no targetTimeSeconds");
   const objects = layers.find((l) => l.name === "spawns")?.objects ?? [];
   const terrain = layers.find((l) => l.name === "terrain")?.data ?? [];
   const point = (type: string): { x: number; y: number } => {
@@ -246,6 +250,7 @@ export function readLevelInfo(json: unknown): LevelInfo {
   return {
     levelNumber,
     widthInTiles: width,
+    targetTimeSeconds: target,
     tilesetName: tilesets[0].name,
     start: point("start"),
     flag: point("flag"),

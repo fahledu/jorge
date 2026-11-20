@@ -1,14 +1,19 @@
 // Typed event bus between `game` and `ui` (ADR 0004). Built on EventTarget, not on
 // Phaser, so `ui` does not depend on the engine through this file.
+import type { ScoreSummary } from "../domain/score.ts";
 
 /** Every event and its payload. `undefined` means no payload. */
 export interface GameEvents {
   /** The player asked to start playing (title screen). */
   playRequested: undefined;
-  /** game → ui: the level stopped (Esc/P or focus lost). */
-  paused: { levelNumber: number };
-  /** game → ui: the player touched the flag. */
-  levelCompleted: { levelNumber: number };
+  /** game → ui: the level stopped (Esc/P or focus lost), with the attempt so far. */
+  paused: { levelNumber: number; elapsedMs: number; points: number };
+  /** game → ui: the player touched the flag; the points of the attempt (ADR 0006). */
+  levelCompleted: { levelNumber: number; summary: ScoreSummary };
+  /** game → ui: the attempt was lost (fell or no hearts); the death effect starts. */
+  attemptLost: { levelNumber: number; reason: "fell" | "hearts" };
+  /** game → ui: an attempt started (the first one too). */
+  attemptStarted: { levelNumber: number; attempt: number };
   /** ui → game: continue the paused level. */
   resumeRequested: undefined;
   /** ui → game: play the level again from the start. */

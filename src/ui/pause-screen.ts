@@ -1,10 +1,11 @@
 import type { EventBus } from "../game/events.ts";
 import { button, dialog, element } from "./dom.ts";
+import { formatPoints, formatTime } from "./format.ts";
 import { strings } from "./strings.ts";
 
 const RESUME_KEYS = new Set(["Escape", "KeyP", "Enter", "NumpadEnter"]);
 
-/** "Pausa" (mockup), reduced to item 1c: level line and "Continuar". */
+/** "Pausa" (mockup) without the buttons of 1j: level, time and points, and "Continuar". */
 export function mountPauseScreen(root: HTMLElement, bus: EventBus): void {
   const { veil, panel, title } = dialog(root, "pause-title");
   title.textContent = strings.pause;
@@ -27,8 +28,8 @@ export function mountPauseScreen(root: HTMLElement, bus: EventBus): void {
   };
 
   resume.addEventListener("click", close);
-  bus.on("paused", ({ levelNumber }) => {
-    level.textContent = strings.levelLabel(levelNumber);
+  bus.on("paused", ({ levelNumber, elapsedMs, points }) => {
+    level.textContent = strings.pauseLine(levelNumber, formatTime(elapsedMs), formatPoints(points));
     veil.hidden = false;
     document.addEventListener("keydown", onKey, true);
     resume.focus();

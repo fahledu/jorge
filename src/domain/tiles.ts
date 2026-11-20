@@ -18,6 +18,11 @@ export const SPIKE_TILES = [68] as const;
 export const COIN_TILE = 151;
 /** Hearts of the HUD. */
 export const HEART_TILES = { full: 44, empty: 46 } as const;
+/**
+ * First of the HUD digits 0–9 in the last row of the sheet (ADR 0009): the smaller of the
+ * two series, glyph 10×12 px with its outline at x 4–13 of the tile (plan 1f, decision 4).
+ */
+export const DIGIT_TILES = 160;
 /** The spring: extended at rest, compressed for a moment when it launches. */
 export const SPRING_TILES = { extended: 108, compressed: 107 } as const;
 /** White wings behind the player when it dies (plan 1d, decision 14). */

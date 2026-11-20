@@ -35,6 +35,15 @@ Para cada fase **1, 10, 50 e 100**, no notebook (teclado) e no celular (toque):
   faz quicar, nos dois; encostar de lado ou bater por baixo tira 1 coração e empurra;
   piscando, encostar não fere, mas o pisão vale; o derrotado não volta até a fase
   recomeçar. Com "Reduzir efeitos": o derrotado some parado, de cabeça para baixo.
+- HUD (topo): corações, moedas, pontos com 6 dígitos, tempo subindo e "FASE 1", legível
+  em 1920×1080 e no celular. Moeda soma 10, andador 100, voador 200, coração 0.
+- Resumo da bandeira: anote inimigos, moedas e o tempo da partida e confira a tabela
+  (quantidade × pontos, 510 da fase 1, bônus de 10 por segundo abaixo de 0:45, total).
+  O foco fica em "Jogar de novo", e Enter recomeça com o HUD zerado.
+- Aviso de tentativa perdida: "Ops! Você caiu." no buraco e "Ops! Acabaram os corações."
+  sem corações, com "Recomeçando a fase 1…"; some quando a fase recomeça, com tudo zerado.
+- Pausa: a linha mostra fase, tempo com décimos e pontos; espere alguns segundos pausado
+  e confira que o tempo continua de onde parou.
 - Fase 1: aparecem um de cada vez, nesta ordem, o pulo, o vão, a moeda, o espinho, a mola,
   o coração, o andador e o voador. Anote se a fase ainda parece curta.
 - Imagem: pixels nítidos (sem borrão), sem faixas pretas fora do lugar, sem tremor da

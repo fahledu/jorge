@@ -111,6 +111,8 @@ e os botões ficam em duas colunas.
 | **Linha de recorde** | Tabela de recordes: fase, pontos, tempo, inimigos, moedas | `surface`, `surface-2` (linhas alternadas), `font-num` |
 | **Painel** | Todo menu sobre o jogo | `surface`, `overlay` atrás, `radius-md`, `shadow-panel`, `space-6`, `panel-max` |
 | **Aviso** | Informação ou erro dentro de um painel ("O progresso salvo estava corrompido…") | `surface-2`, borda esquerda `danger-text` (erro) ou `primary` (info), `text-small` |
+| **Resumo de pontos** | Fim de fase: uma linha por fonte de pontos (sempre todas) e o total | `surface-2` (linhas alternadas), `font-num` nos números, `text-small`; total com borda `border`, `text-heading` 800 e `primary` |
+| **Aviso de tentativa perdida** | Ao cair ou ficar sem corações, até a fase recomeçar; sem botão, não tira o foco, `role="status"` | `surface`, borda `bg`, `radius-md`, `shadow-panel`; título `text-heading` 700, linha `muted` `text-small` |
 | **Selo "Novo recorde!"** | Fim de fase quando bateu o recorde | `primary`, `on-primary`, `text-heading` |
 | **HUD** | No canvas: corações, moedas, pontos, tempo, fase | Faixa `bg` a 80%, dígitos do pack, sprites de coração e moeda |
 | **Botão de toque** | Esquerda, direita, pular, pausa | Círculo `bg` a 60%, borda `text` a 70%, `touch-size`; pressionado: `primary` a 60% |

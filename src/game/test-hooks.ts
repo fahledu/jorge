@@ -1,7 +1,9 @@
 // E2E shortcut (ADR 0010): imported only when the build mode is `e2e`, so the production
 // build does not contain it (checked by scripts/check-dist.ts).
-import { isInvulnerable } from "../domain/attempt.ts";
+import { type AttemptEvent, isInvulnerable } from "../domain/attempt.ts";
 import { type Cell, cellOf } from "../domain/geometry.ts";
+import { type HudFields, hudFields } from "../domain/hud.ts";
+import { runningPoints, type ScoreSummary } from "../domain/score.ts";
 import type {
   EnemySnapshot,
   LevelScene,
@@ -27,7 +29,14 @@ export interface JorgeTestHooks {
     invulnerable: boolean;
     defeatedWalkers: number;
     defeatedFlyers: number;
+    elapsedMs: number;
+    points: number;
+    events: readonly AttemptEvent[];
   };
+  /** What the HUD shows now. */
+  hud(): HudFields | null;
+  /** The summary of the last completed attempt. */
+  lastSummary(): ScoreSummary | null;
   player(): PlayerSnapshot | null;
   enemies(): EnemySnapshot[];
   freezeEnemies(frozen: boolean): void;
@@ -59,9 +68,13 @@ export function installTestHooks(levelScene: () => LevelScene | null): void {
           invulnerable: false,
           defeatedWalkers: 0,
           defeatedFlyers: 0,
+          elapsedMs: 0,
+          points: 0,
+          events: [],
         };
       }
-      const { hearts, coins, defeatedWalkers, defeatedFlyers } = scene.attemptState;
+      const { hearts, coins, defeatedWalkers, defeatedFlyers, elapsedMs, events } =
+        scene.attemptState;
       return {
         status: scene.status,
         attempt: scene.attempt,
@@ -70,8 +83,16 @@ export function installTestHooks(levelScene: () => LevelScene | null): void {
         invulnerable: isInvulnerable(scene.attemptState),
         defeatedWalkers,
         defeatedFlyers,
+        elapsedMs,
+        points: runningPoints(events),
+        events,
       };
     },
+    hud() {
+      const scene = playing();
+      return scene ? hudFields(scene.attemptState, scene.levelInfo.levelNumber) : null;
+    },
+    lastSummary: () => levelScene()?.lastSummary ?? null,
     player: () => playing()?.playerSnapshot() ?? null,
     enemies: () => playing()?.enemySnapshots() ?? [],
     freezeEnemies: (frozen) => levelScene()?.freezeEnemies(frozen),

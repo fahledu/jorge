@@ -6,7 +6,8 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
 
 - **Última atualização:** 2026-11-19
 - **Fase:** Fase 1 (MVP).
-- **Próximo passo:** item **1f** do roadmap: `/feature 1f`.
+- **Próximo passo:** rodada à mão do 1f na fase 1 (`docs/ROTEIRO-TESTE.md`: o resumo bate
+  com a partida); depois, item **1g**: `/feature 1g`.
 
 ## Feito
 
@@ -55,6 +56,18 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
   Desvios do plano: `ENEMY_SPEED` no `domain`; o teste do espinho roda dentro da página
   (era instável sob carga). Rodada à mão na fase 1 no Edge (concluída, 118 fps; pisão e
   morte em todos os inimigos).
+- 1f: pontuação, HUD e fim de fase. Eventos e relógio da tentativa (`attempt.ts`),
+  `score.ts` com os exemplos do ADR 0006 como teste (recorde e total como funções puras,
+  sem uso até o 1i), `hud.ts` e o HUD no canvas com os dígitos do pack (ids 160–169),
+  resumo da fase concluída, aviso de tentativa perdida (`role="status"`), linha da pausa
+  com tempo e pontos, `targetTimeSeconds` lido da fase. Componentes "Resumo de pontos" e
+  "Aviso de tentativa perdida" no DESIGN.md. Desvios do plano: o HUD é atualizado uma vez
+  por quadro (`update()`) e ao pausar, não a cada passo; os dois pontos do relógio ficam
+  5 px à direita do mockup (lá encostavam no dígito anterior); `createGame` recebe
+  `GameTexts`; uma tolerância só (`EPSILON_MS` em `physics.ts`). O E2E confere o recomeço
+  do zero contra o tempo real decorrido (sob carga o Phaser recupera vários passos num
+  quadro). Falta a rodada à mão (resumo contra a partida, anúncio do aviso no leitor de
+  tela).
 
 ## Limites aceitos
 
@@ -81,6 +94,10 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
 - No 1g: os E2E de queda usam a coluna 38 fixa (vão da fase 1), porque `level()` não
   expõe o terreno; expor os vãos quando a fase mudar. O efeito de derrota com reduzir
   efeitos não tem E2E (só unidade e roteiro).
+
+- Ambiente: o Node 26 desta máquina não tem corepack e o `pnpm` não roda; o 1f foi
+  verificado com os binários de `node_modules/.bin` e `npm run`. `pnpm audit` não rodou
+  (sem dependência nova). Consertar com `npm i -g corepack` e `corepack enable`.
 
 - Confirmar: sem analytics nem rastreio de qualquer tipo (suposição do ADR 0007); a
   hipótese do MVP é medida por teste com 5 pessoas (`docs/ROADMAP.md`).

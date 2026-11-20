@@ -17,6 +17,8 @@ import { MAP_HEIGHT, TILE_SIZE } from "./tmj.ts";
 export const PHYSICS_FPS = 60;
 /** Duration of one physics step, in ms. */
 export const STEP_MS = 1000 / PHYSICS_FPS;
+/** Tolerance for times summed or counted down in steps of 1000/60 ms. */
+export const EPSILON_MS = 1e-6;
 /** Px/s². */
 export const GRAVITY = 1000;
 /** Horizontal speed, px/s, the same on the ground and in the air. */

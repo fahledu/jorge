@@ -225,3 +225,5 @@ sai desta lista, e o descartado também.
 - Plataformas atravessáveis por baixo (fora de escopo do plano 1c)
 - Voador com trajetória vertical ou em onda (fora de escopo do plano 1e)
 - Quique mais alto ao pisar no inimigo segurando o pulo (fora de escopo do plano 1e)
+- Pontos flutuando no lugar do inimigo derrotado ou da moeda (fora de escopo do plano 1f)
+- Tempo-alvo do bônus visível durante a fase (fora de escopo do plano 1f)

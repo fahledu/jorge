@@ -1,6 +1,7 @@
 // One attempt at a level: hearts, invulnerability, coins, defeated enemies and how it ends
-// (ADR 0006). Item 1f adds the events and the time.
+// (ADR 0006), with the list of scoring events and the time it took (plan 1f).
 import type { EnemyType } from "./enemies.ts";
+import { EPSILON_MS } from "./physics.ts";
 
 export const MAX_HEARTS = 3;
 /** Invulnerability after a hit, ms (ADR 0006). */
@@ -10,8 +11,18 @@ export const BLINK_MS = 250;
 const BLINK_ALPHA = 0.4;
 /** Fixed opacity while invulnerable with "reduce effects" on. */
 const STILL_ALPHA = 0.5;
-/** Tolerance for timers counted down in steps of 1000/60 ms. */
-const EPSILON_MS = 1e-6;
+/** What is worth points, in the order it happened (ADR 0006); `score.ts` reads it. */
+export type AttemptEvent =
+  | { type: "coin" }
+  | { type: "enemyDefeated"; enemy: EnemyType }
+  | { type: "completed" };
+
+const COIN_EVENT: AttemptEvent = { type: "coin" };
+const COMPLETED_EVENT: AttemptEvent = { type: "completed" };
+const DEFEAT_EVENTS: Record<EnemyType, AttemptEvent> = {
+  walker: { type: "enemyDefeated", enemy: "walker" },
+  flyer: { type: "enemyDefeated", enemy: "flyer" },
+};
 
 export interface AttemptState {
   hearts: number;
@@ -24,6 +35,10 @@ export interface AttemptState {
   defeated: readonly number[];
   defeatedWalkers: number;
   defeatedFlyers: number;
+  /** Coins, defeated enemies and the flag, in order (no event for a heart). */
+  events: readonly AttemptEvent[];
+  /** Time played in this attempt, ms: the sum of the injected steps (plan 1f, decision 2). */
+  elapsedMs: number;
 }
 
 export interface ItemContact {
@@ -74,6 +89,8 @@ export function initialAttempt(): AttemptState {
     defeated: [],
     defeatedWalkers: 0,
     defeatedFlyers: 0,
+    events: [],
+    elapsedMs: 0,
   };
 }
 
@@ -94,13 +111,16 @@ export function stepAttempt(
   let { hearts, coins, defeatedWalkers, defeatedFlyers } = state;
   const invulnerableMs = Math.max(0, state.invulnerableMs - dtMs);
   const collected: ItemContact[] = [];
+  const stepEvents: AttemptEvent[] = [];
   let ids = state.collected;
   for (const item of contacts.items) {
     if (ids.includes(item.id)) continue;
     ids = [...ids, item.id];
     collected.push(item);
-    if (item.type === "coin") coins += 1;
-    else hearts = Math.min(MAX_HEARTS, hearts + 1);
+    if (item.type === "coin") {
+      coins += 1;
+      stepEvents.push(COIN_EVENT);
+    } else hearts = Math.min(MAX_HEARTS, hearts + 1);
   }
   const defeated: EnemyContact[] = [];
   let defeatedIds = state.defeated;
@@ -113,9 +133,11 @@ export function stepAttempt(
     }
     defeatedIds = [...defeatedIds, enemy.id];
     defeated.push(enemy);
+    stepEvents.push(DEFEAT_EVENTS[enemy.type]);
     if (enemy.type === "walker") defeatedWalkers += 1;
     else defeatedFlyers += 1;
   }
+  if (contacts.flag) stepEvents.push(COMPLETED_EVENT);
   const next: AttemptState = {
     hearts,
     invulnerableMs,
@@ -124,6 +146,8 @@ export function stepAttempt(
     defeated: defeatedIds,
     defeatedWalkers,
     defeatedFlyers,
+    events: stepEvents.length > 0 ? [...state.events, ...stepEvents] : state.events,
+    elapsedMs: state.elapsedMs + dtMs,
   };
   const stomped = defeated.length > 0;
   const base = { collected, defeated, stomped };

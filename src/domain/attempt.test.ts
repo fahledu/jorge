@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   type AttemptContacts,
+  type AttemptEvent,
   type AttemptState,
   INVULNERABLE_MS,
   initialAttempt,
@@ -13,8 +14,22 @@ import { STEP_MS } from "./physics.ts";
 const none: AttemptContacts = { items: [], enemies: [], hazard: false, flag: false };
 const spike: AttemptContacts = { ...none, hazard: true };
 
+/** The counters of 1e always match the events (plan 1f): checked on every step. */
+function expectCountersMatchEvents(state: AttemptState): void {
+  const count = (match: (e: AttemptEvent) => boolean) => state.events.filter(match).length;
+  expect(state.coins).toBe(count((e) => e.type === "coin"));
+  expect(state.defeatedWalkers).toBe(
+    count((e) => e.type === "enemyDefeated" && e.enemy === "walker"),
+  );
+  expect(state.defeatedFlyers).toBe(
+    count((e) => e.type === "enemyDefeated" && e.enemy === "flyer"),
+  );
+}
+
 function step(state: AttemptState, contacts: Partial<AttemptContacts> = {}) {
-  return stepAttempt(state, { ...none, ...contacts }, STEP_MS);
+  const result = stepAttempt(state, { ...none, ...contacts }, STEP_MS);
+  expectCountersMatchEvents(result.state);
+  return result;
 }
 
 function wait(state: AttemptState, steps: number): AttemptState {
@@ -236,5 +251,48 @@ describe("enemies (ADR 0006, plan 1e)", () => {
     expect(state.defeated).toEqual([]);
     expect(state.defeatedWalkers).toBe(0);
     expect(state.defeatedFlyers).toBe(0);
+  });
+});
+
+describe("events and time (plan 1f)", () => {
+  const walker = (id: number, stomp: boolean) => ({ id, type: "walker" as const, stomp });
+  const coin = (id: number) => ({ id, type: "coin" as const });
+  const heart = (id: number) => ({ id, type: "heart" as const });
+
+  it("a new attempt has no events and no time", () => {
+    expect(initialAttempt().events).toEqual([]);
+    expect(initialAttempt().elapsedMs).toBe(0);
+  });
+
+  it("a coin, a heart at 3 and a stomp: coin then walker, nothing for the heart", () => {
+    const result = step(initialAttempt(), {
+      items: [coin(1), heart(2)],
+      enemies: [walker(3, true)],
+    });
+    expect(result.state.events).toEqual([
+      { type: "coin" },
+      { type: "enemyDefeated", enemy: "walker" },
+    ]);
+  });
+
+  it("a stomp and the flag in one step: the enemy, then completed", () => {
+    const result = step(initialAttempt(), { enemies: [walker(3, true)], flag: true });
+    expect(result.state.events).toEqual([
+      { type: "enemyDefeated", enemy: "walker" },
+      { type: "completed" },
+    ]);
+  });
+
+  it("a coin touched again adds no event", () => {
+    const first = step(initialAttempt(), { items: [coin(1)] });
+    expect(step(first.state, { items: [coin(1)] }).state.events).toHaveLength(1);
+  });
+
+  it("60 steps add up to 1000 ms", () => {
+    expect(wait(initialAttempt(), 60).elapsedMs).toBeCloseTo(1000, 6);
+  });
+
+  it("the time also counts on a hurt step", () => {
+    expect(step(initialAttempt(), spike).state.elapsedMs).toBe(STEP_MS);
   });
 });

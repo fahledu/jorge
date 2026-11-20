@@ -7,10 +7,23 @@ import { attachKeyboard } from "./input/keyboard.ts";
 import { loadLevel } from "./levels.ts";
 import { LevelScene, type LevelSceneData } from "./scenes/level-scene.ts";
 
+function token(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
 /** A color token of the theme (ADR 0009), as 0xRRGGBB for the canvas. */
 function tokenColor(name: string): number {
-  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  return Phaser.Display.Color.HexStringToColor(value).color;
+  return Phaser.Display.Color.HexStringToColor(token(name)).color;
+}
+
+/** Texts of the game from `ui/strings.ts` (pt-BR), passed in so `game` holds none. */
+export interface GameTexts {
+  /** Accessible name of the canvas before a level loads. */
+  label: string;
+  /** Accessible name of the canvas during a level. */
+  levelLabel: (levelNumber: number) => string;
+  /** "FASE" on the HUD. */
+  levelWord: string;
 }
 
 export interface GameHandle {
@@ -23,12 +36,7 @@ export interface GameHandle {
  * by `computeScale` on every resize (ADR 0009), not by Phaser's FIT mode, which is
  * always fractional.
  */
-export function createGame(
-  parent: HTMLElement,
-  bus: EventBus,
-  label: string,
-  levelLabel: (levelNumber: number) => string,
-): GameHandle {
+export function createGame(parent: HTMLElement, bus: EventBus, texts: GameTexts): GameHandle {
   const game = new Phaser.Game({
     type: Phaser.AUTO,
     parent,
@@ -64,7 +72,7 @@ export function createGame(
 
   game.events.once(Phaser.Core.Events.READY, () => {
     game.canvas.setAttribute("role", "img");
-    game.canvas.setAttribute("aria-label", label);
+    game.canvas.setAttribute("aria-label", texts.label);
     fit();
   });
   new ResizeObserver(fit).observe(parent);
@@ -106,7 +114,7 @@ export function createGame(
       loadLevel(1).then(
         (level) => {
           parent.hidden = false;
-          game.canvas.setAttribute("aria-label", levelLabel(level.info.levelNumber));
+          game.canvas.setAttribute("aria-label", texts.levelLabel(level.info.levelNumber));
           const data: LevelSceneData = {
             level,
             bus,
@@ -114,7 +122,13 @@ export function createGame(
             attempt: 1,
             // From the system until the saved setting of items 1i and 1j (plan 1d).
             reduceEffects: () => reducedMotion.matches,
-            colors: { hud: tokenColor("--color-bg"), halo: tokenColor("--color-primary") },
+            colors: {
+              hud: tokenColor("--color-bg"),
+              text: tokenColor("--color-text"),
+              halo: tokenColor("--color-primary"),
+            },
+            levelWord: texts.levelWord,
+            font: token("--font-ui"),
           };
           game.scene.add("level", LevelScene, true, data);
           fit();

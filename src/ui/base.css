@@ -186,3 +186,68 @@ body {
   font: 400 var(--text-small) var(--font-num);
   pointer-events: none;
 }
+
+/* Score summary of a completed level (plan 1f): lines, then the total. */
+.breakdown {
+  width: 100%;
+  margin-bottom: var(--space-4);
+  border-collapse: collapse;
+  font: 400 var(--text-small) var(--font-ui);
+}
+
+.breakdown td {
+  padding: var(--space-1) var(--space-2);
+}
+
+.breakdown td:last-child {
+  text-align: right;
+  font-family: var(--font-num);
+}
+
+.breakdown tr:nth-child(odd):not(.total) {
+  background: var(--color-surface-2);
+}
+
+.breakdown tr.total td {
+  border-top: var(--border-w) solid var(--color-border);
+  font: 800 var(--text-heading) var(--font-ui);
+  color: var(--color-primary);
+}
+
+.breakdown tr.total td:last-child {
+  font-family: var(--font-num);
+}
+
+/* Notice of a lost attempt (plan 1f): over the game, no button, never takes the focus. */
+.ui > .toast-region {
+  position: absolute;
+  top: 40%;
+  right: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--space-4);
+  pointer-events: none;
+}
+
+.toast {
+  padding: var(--space-3) var(--space-6);
+  text-align: center;
+  background: var(--color-surface);
+  border: var(--border-w) solid var(--color-bg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+}
+
+.toast[hidden] {
+  display: none;
+}
+
+.toast-title {
+  margin: 0;
+  font: 700 var(--text-heading) var(--font-ui);
+}
+
+.toast-line {
+  margin: 0;
+}

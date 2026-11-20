@@ -135,6 +135,7 @@ describe("buildManualLevel", () => {
     expect(info).toEqual({
       levelNumber: 1,
       widthInTiles: 100,
+      targetTimeSeconds: 25,
       tilesetName: "tileset-tiles",
       start: { x: 27, y: 207 },
       flag: { x: 98 * 18 + 9, y: 207 },
@@ -158,6 +159,14 @@ describe("readLevelInfo", () => {
     expect(() => readLevelInfo(file)).toThrow(/levelNumber/);
   });
 
+  it("rejects a file without targetTimeSeconds", () => {
+    const file = level();
+    file.properties = file.properties.filter(
+      (p: { name: string }) => p.name !== "targetTimeSeconds",
+    );
+    expect(() => readLevelInfo(file)).toThrow(/targetTimeSeconds/);
+  });
+
   it("rejects a file without a flag", () => {
     const file = level();
     file.layers[2].objects.pop();
@@ -176,6 +185,7 @@ describe("readLevelInfo", () => {
     const info = readLevelInfo(built);
     const count = (type: string) => info.items.filter((i) => i.type === type).length;
     expect(info.widthInTiles).toBe(180);
+    expect(info.targetTimeSeconds).toBe(45);
     expect(built.properties).toContainEqual({
       name: "targetTimeSeconds",
       type: "int",

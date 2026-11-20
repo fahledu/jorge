@@ -8,7 +8,6 @@ import {
   type ItemContact,
   initialAttempt,
   invulnerabilityAlpha,
-  MAX_HEARTS,
   stepAttempt,
 } from "../../domain/attempt.ts";
 import type { CommandFrame, CommandState } from "../../domain/commands.ts";
@@ -34,6 +33,7 @@ import {
   spikeBox,
   springBox,
 } from "../../domain/geometry.ts";
+import { hudFields } from "../../domain/hud.ts";
 import type { LevelEnemy, LevelItem } from "../../domain/level.ts";
 import {
   initialMovement,
@@ -47,6 +47,7 @@ import {
 } from "../../domain/movement.ts";
 import { isBelowMap, PLAYER_BODY, STEP_MS } from "../../domain/physics.ts";
 import { GAME_HEIGHT, GAME_WIDTH } from "../../domain/scale.ts";
+import { runningPoints, type ScoreSummary, scoreSummary } from "../../domain/score.ts";
 import {
   COIN_TILE,
   FLAG_TILES,
@@ -60,6 +61,7 @@ import { MAP_HEIGHT, TILE_SIZE } from "../../domain/tmj.ts";
 import { Enemy } from "../entities/enemy.ts";
 import { CHARACTERS, Player } from "../entities/player.ts";
 import type { EventBus } from "../events.ts";
+import { Hud } from "../hud.ts";
 import type { LevelData } from "../levels.ts";
 
 const TILES = "tiles";
@@ -90,12 +92,6 @@ const THEME_WIDTH = 96;
 const BACKGROUND_SCROLL = 0.5;
 /** The spring shows compressed this long after a launch, ms (plan 1d). */
 const SPRING_COMPRESSED_MS = 150;
-/** HUD band of the mockup: height, opacity of the background, hearts' positions. */
-const HUD_HEIGHT = 22;
-const HUD_ALPHA = 0.8;
-const HUD_HEART_X = [4, 22, 40] as const;
-const HUD_HEART_Y = 2;
-const HUD_DEPTH = 100;
 /** Halo of the death effect: ellipse size and line, px; how far above the frame. */
 const HALO = { width: 10, height: 3, line: 1, above: 1 } as const;
 /**
@@ -123,7 +119,10 @@ export interface LevelSceneData {
   /** "Reduce effects" now: no blinking nor motion in the effects (ADR 0009). */
   reduceEffects: () => boolean;
   /** Colors from the design tokens, as 0xRRGGBB. */
-  colors: { hud: number; halo: number };
+  colors: { hud: number; text: number; halo: number };
+  /** "FASE" on the HUD (strings.ts) and the UI font family (tokens). */
+  levelWord: string;
+  font: string;
 }
 
 export type LevelStatus = "playing" | "paused" | "completed" | "dying" | "loading";
@@ -206,8 +205,9 @@ export class LevelScene extends Phaser.Scene {
   #enemies: EnemyEntry[] = [];
   /** Test hook: enemies stand still (kept across restarts). */
   #enemiesFrozen = false;
-  #hearts: Phaser.GameObjects.Image[] = [];
-  #shownHearts = -1;
+  #hud!: Hud; // set in create()
+  /** Test hook: the summary of the last completed attempt (kept across restarts). */
+  #lastSummary: ScoreSummary | null = null;
   #dying: Dying | null = null;
   #wings!: Phaser.GameObjects.Image; // set in create()
   #halo!: Phaser.GameObjects.Graphics; // set in create()
@@ -234,6 +234,11 @@ export class LevelScene extends Phaser.Scene {
     return this.#attempt;
   }
 
+  /** The summary of the last time the flag was touched, or null. */
+  get lastSummary(): ScoreSummary | null {
+    return this.#lastSummary;
+  }
+
   init(data: LevelSceneData): void {
     this.#data = data;
     this.#movement = initialMovement();
@@ -244,8 +249,6 @@ export class LevelScene extends Phaser.Scene {
     this.#springs = [];
     this.#spikes = [];
     this.#enemies = [];
-    this.#hearts = [];
-    this.#shownHearts = -1;
     this.#dying = null;
   }
 
@@ -296,7 +299,13 @@ export class LevelScene extends Phaser.Scene {
     this.physics.add.collider(this.#player, terrain);
     // Default depth on purpose: the angel passes under the HUD band on its way out.
     this.#halo = this.add.graphics().setVisible(false);
-    this.#createHud();
+    this.#hud = new Hud(this, {
+      tiles: TILES,
+      levelWord: this.#data.levelWord,
+      font: this.#data.font,
+      colors: { band: this.#data.colors.hud, text: this.#data.colors.text },
+    });
+    this.#showHud();
 
     const camera = this.cameras.main;
     camera.setBounds(0, 0, width, height);
@@ -316,10 +325,12 @@ export class LevelScene extends Phaser.Scene {
     });
     this.#status = "playing";
     controls.setEnabled(true);
+    bus.emit("attemptStarted", { levelNumber: info.levelNumber, attempt: this.#data.attempt });
   }
 
   override update(): void {
     if (this.#status !== "dying") this.#player.show(this.#onGround);
+    this.#showHud();
     const offset = Math.round(this.cameras.main.scrollX * BACKGROUND_SCROLL);
     for (const strip of this.#background) strip.tilePositionX = offset;
   }
@@ -330,7 +341,13 @@ export class LevelScene extends Phaser.Scene {
     this.#status = "paused";
     this.#data.controls.setEnabled(false);
     this.scene.pause();
-    this.#data.bus.emit("paused", { levelNumber: this.#data.level.info.levelNumber });
+    // The HUD shows the same time and points as the pause line.
+    this.#showHud();
+    this.#data.bus.emit("paused", {
+      levelNumber: this.#data.level.info.levelNumber,
+      elapsedMs: this.#attempt.elapsedMs,
+      points: runningPoints(this.#attempt.events),
+    });
   }
 
   playerSnapshot(): PlayerSnapshot {
@@ -438,7 +455,6 @@ export class LevelScene extends Phaser.Scene {
       const enemy = this.#enemies.find((candidate) => candidate.info.id === defeated.id);
       if (enemy) enemy.defeatedMs = 0;
     }
-    this.#showHearts();
     this.#player.setAlpha(invulnerabilityAlpha(this.#attempt, this.#data.reduceEffects()));
 
     if (result.outcome === "completed") {
@@ -516,6 +532,10 @@ export class LevelScene extends Phaser.Scene {
   #die(fell: boolean): void {
     this.#status = "dying";
     this.#data.controls.setEnabled(false);
+    this.#data.bus.emit("attemptLost", {
+      levelNumber: this.#data.level.info.levelNumber,
+      reason: fell ? "fell" : "hearts",
+    });
     const body = this.#player.body;
     body.stop();
     body.enable = false;
@@ -566,7 +586,11 @@ export class LevelScene extends Phaser.Scene {
     this.#status = "completed";
     this.#data.controls.setEnabled(false);
     this.#player.body.setVelocityX(0);
-    this.#data.bus.emit("levelCompleted", { levelNumber: this.#data.level.info.levelNumber });
+    const { info } = this.#data.level;
+    const summary = scoreSummary(this.#attempt.events, info, this.#attempt.elapsedMs);
+    this.#lastSummary = summary;
+    this.#showHud();
+    this.#data.bus.emit("levelCompleted", { levelNumber: info.levelNumber, summary });
   }
 
   readonly #resume = (): void => {
@@ -620,30 +644,8 @@ export class LevelScene extends Phaser.Scene {
     });
   }
 
-  /** The HUD band of the mockup, with the hearts only; item 1f adds the rest. */
-  #createHud(): void {
-    this.add
-      .rectangle(0, 0, GAME_WIDTH, HUD_HEIGHT, this.#data.colors.hud, HUD_ALPHA)
-      .setOrigin(0, 0)
-      .setScrollFactor(0)
-      .setDepth(HUD_DEPTH);
-    this.#hearts = HUD_HEART_X.slice(0, MAX_HEARTS).map((x) =>
-      this.add
-        .image(x, HUD_HEART_Y, TILES, HEART_TILES.full)
-        .setOrigin(0, 0)
-        .setScrollFactor(0)
-        .setDepth(HUD_DEPTH),
-    );
-    this.#showHearts();
-  }
-
-  #showHearts(): void {
-    const hearts = this.#attempt.hearts;
-    if (hearts === this.#shownHearts) return;
-    this.#shownHearts = hearts;
-    this.#hearts.forEach((image, index) => {
-      image.setFrame(index < hearts ? HEART_TILES.full : HEART_TILES.empty);
-    });
+  #showHud(): void {
+    this.#hud.update(hudFields(this.#attempt, this.#data.level.info.levelNumber));
   }
 
   #createFlag(point: { x: number; y: number }): void {

@@ -1,6 +1,7 @@
 // Player control, applied once per physics step (see physics.ts for the step order).
 import {
   COYOTE_MS,
+  EPSILON_MS,
   JUMP_BUFFER_MS,
   JUMP_CUT_SPEED,
   JUMP_SPEED,
@@ -12,9 +13,6 @@ import {
   SPRING_SPEED,
   STOMP_BOUNCE_SPEED,
 } from "./physics.ts";
-
-/** Tolerance for timers counted down in steps of 1000/60 ms. */
-const EPSILON_MS = 1e-6;
 
 export interface MovementState {
   /** Time left to jump after leaving the ground, ms. */
