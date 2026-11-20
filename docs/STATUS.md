@@ -6,7 +6,7 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
 
 - **Última atualização:** 2026-11-20
 - **Fase:** Fase 1 (MVP).
-- **Próximo passo:** rodada à mão do 1g (abaixo), depois o item **1h**: `/feature 1h`.
+- **Próximo passo:** item **1g2** (temas e inimigos novos): `/feature 1g2`.
 
 ## Feito
 
@@ -82,7 +82,10 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
   cena sem alocar (`ColumnIndex` e arrays reaproveitados). E2E abre e conclui as 100
   fases. Desvios do plano: `SEED_BASE` em `prng.ts` e `GENERATOR_VERSION` em `level.ts`
   (o jogo não leva o gerador); trechos escritos por um script de desenho em ASCII fora do
-  repositório, conferidos pela prévia em PNG.
+  repositório, conferidos pela prévia em PNG. Rodada à mão: fases 2, 10 e 50 concluídas, 70
+  não (provável voador sobre o vão do trecho `ledge`; regra nova no ADR 0012), fase 100 com
+  117 fps de média. Pedidos da rodada viraram ADRs 0014 (modos livre e desafio, vidas, top
+  10 local) e 0015 (temas por bloco) e os itens 1g2, 1i2 e 1j2 do roadmap.
 
 ## Limites aceitos
 
@@ -106,9 +109,7 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
 
 ## Questões em aberto
 
-- Rodada à mão do 1g, não feita: `?fase=2`, `50` e `100` no `pnpm dev` (morros, junções,
-  chegar à bandeira) e o fps da fase 100 (meta do ADR 0010, 55 de média). Firefox também
-  não verificado.
+- Firefox não verificado no 1g.
 - E2E em paralelo nesta máquina: com os workers padrão, cerca de 20 testes falham por
   erro do próprio Playwright (trace truncado, navegador fechado); com `--workers=1` os 41
   passam. Não conferido se já acontecia antes do 1g; se repetir, fixar `workers` no

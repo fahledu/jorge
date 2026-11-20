@@ -5,6 +5,8 @@
 - Correção: 2026-11-20, o pulo confere as linhas `r − folga` até `r − 1` em todas as
   colunas (antes ia até `min(r, r') − 1` e deixava atravessar um teto ao subir); sem
   mudar números.
+- Revisão: 2026-11-20, caminhos alternativos (tag `alt`, rota alta) e o sorteio do item
+  secreto do ADR 0014 no fim da ordem do sorteio.
 
 ## Contexto
 O ADR 0005 decidiu gerar as 100 fases no build a partir de trechos do Tiled, com semente
@@ -44,7 +46,7 @@ editado: este ADR o substitui por inteiro. O que não está marcado como novo re
 - **Fase gerada:** JSON no formato Tiled com tileset embutido (ADR 0012, "Saída do
   build"), com as propriedades, em ordem de nome: `chunks` (string, nomes dos trechos em
   ordem, separados por vírgula), `contentHash`, `generatorVersion` (int), `levelNumber`,
-  `seed` (int), `targetTimeSeconds` (ADR 0006), `tier`. `contentHash` = 16 primeiros
+  `seed` (int), `targetTimeSeconds` (ADR 0014), `tier`. `contentHash` = 16 primeiros
   caracteres hex do SHA-256 da serialização canônica sem o próprio `contentHash`. O save
   grava esse valor em cada recorde (ADR 0007).
 - *Novo:* na fase gerada, os spawns desligados não são gravados; os ativos levam `x`
@@ -58,7 +60,8 @@ editado: este ADR o substitui por inteiro. O que não está marcado como novo re
   `` `${SEED_BASE}:${n}` ``, com `SEED_BASE = "jorge"`. **PRNG:** mulberry32 sobre essa
   semente, valores em [0, 1). Nada de `Math.random` (ADR 0004).
 - **Ordem do sorteio** (*novo*): uma sequência por fase, consumida nesta ordem: trecho de
-  início, trechos do meio um a um, trecho de chegada, escolha dos inimigos ativos. Cada
+  início, trechos do meio um a um, trecho de chegada, escolha dos inimigos ativos e, por
+  fim, a do item secreto (ADR 0014). Cada
   sorteio de trecho consome um valor, mesmo com um candidato só. Os candidatos ficam em
   ordem de nome do arquivo.
 - **Curva:** `tier(n) = ceil(n / 10)` (1 a 10).
@@ -68,7 +71,8 @@ editado: este ADR o substitui por inteiro. O que não está marcado como novo re
   - Número de trechos do meio: `3 + floor((n − 1) / 15)` (3 na fase 1, 9 na fase 100),
     mais o de início e o de chegada.
   - Densidade de inimigos: `0,3 + 0,6 × (n − 1) / 99`.
-  - Andador liberado desde o tier 1, voador desde o 3.
+  - Andador liberado desde o tier 1, voador desde o 3 (espinhoso e voador vertical:
+    ADR 0014).
   - *Muda o 0005:* dentro do bloco a dificuldade sobe pela densidade (contínua) e pelo
     número de trechos; não há alívio no começo do bloco seguinte. O ajuste fino da curva
     é do item 1h, pelo teste à mão, e muda este ADR.
@@ -116,6 +120,21 @@ editado: este ADR o substitui por inteiro. O que não está marcado como novo re
 - Inimigos ignorados (podem ser pisados ou evitados); molas ignoradas (a bandeira tem de
   ser alcançável só com o pulo).
 
+### Caminhos alternativos (rota alta)
+Pedido do usuário: fases com escolha entre um caminho fácil e um difícil que paga mais.
+- **Tag `alt`:** marca trecho do meio com rota alta (trecho `start` ou `finish` com `alt`
+  falha o build).
+- **Rota alta** (conferida na prévia em PNG e na revisão do trecho): da entrada à saída do
+  trecho há duas rotas. A baixa, pelo chão, é a mais fácil e leva sozinha à saída. A alta
+  passa ao menos 3 linhas acima da baixa por pelo menos um terço da largura do trecho, tem
+  ao menos um perigo que a baixa não tem (vão, espinho ou inimigo) e pelo menos o dobro de
+  moedas da baixa, com no mínimo 3. Cair da alta não prende o jogador (volta à baixa ou é
+  morte por queda).
+- **Composição da biblioteca:** em cada dificuldade de 1 a 10, pelo menos `ceil(n / 3)`
+  dos `n` trechos do meio têm `alt`. O build confere e falha com a dificuldade.
+- O item secreto do ADR 0014, quando o trecho tem um, fica na rota alta.
+- O validador não muda: basta alcançar a bandeira por qualquer rota.
+
 ## Casos-limite
 - Rodar `levels:build` duas vezes → arquivos idênticos byte a byte, mesmos `contentHash`.
 - Trocar um tile (ou um spawn) de um trecho → só mudam as fases cujo `chunks` o contém.
@@ -141,6 +160,9 @@ editado: este ADR o substitui por inteiro. O que não está marcado como novo re
   fase 30 → desligada; na 31 → ativa.
 - Fase manual `levels/manual/007.tmj` com bandeira inalcançável → build falha.
 - Arquivo de fase gerada editado à mão (um byte) → `levels:check` falha nomeando o arquivo.
+- Dificuldade 4 com 3 trechos do meio, nenhum `alt` → build falha; com 1 → aceito.
+- Dificuldade 7 com 4 trechos → precisa de 2 `alt`.
+- Trecho com as tags `start` e `alt` → build falha.
 
 ## Descartado
 - **Gerar em tempo de execução com semente fixa:** a fase muda sem aparecer no diff; o
@@ -157,3 +179,5 @@ editado: este ADR o substitui por inteiro. O que não está marcado como novo re
 - **Sortear de novo a fase que falha no validador:** esconderia um trecho ruim.
 - **Mola como salto no validador:** cada trecho teria de garantir o pouso; fica fora até
   um trecho do 1h precisar.
+- **Validador por rota** (conferir que a baixa sozinha chega): o validador não sabe qual
+  célula é de qual rota; a prévia e a revisão cobrem.

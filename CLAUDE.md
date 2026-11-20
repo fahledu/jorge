@@ -8,8 +8,9 @@ curto, como índice. O detalhe mora nos ADRs.
 > **Para retomar o trabalho, leia `docs/STATUS.md`** (fase atual, próximo passo, pendências).
 
 Jogo de plataforma 2D no navegador, público e sem login: 100 fases geradas a partir de
-trechos desenhados à mão, com dificuldade crescente; pontos por inimigos derrotados,
-moedas e conclusão; save e recordes pessoais só no navegador. Teclado e toque. Arte do
+trechos desenhados à mão, com dificuldade crescente e um tema por bloco de fases; pontos
+por inimigos derrotados, moedas e conclusão; modo livre (recorde por fase) e modo desafio
+(partida com vidas e top 10 local com apelido); save só no navegador. Teclado e toque. Arte do
 pack Kenney Pixel Platformer (CC0). Fora do MVP: chefes, sons, gamepad, PWA, ranking
 global e save na nuvem (lista em `docs/ROADMAP.md`).
 
@@ -100,14 +101,14 @@ pnpm audit --prod --audit-level high         # auditoria de dependências
 2. Cada agente altera só a sua área; `.claude/` só com o usuário; segredo real só em `.env.local`, que agente só toca com a sua confirmação; chave privada e `.ssh` ninguém lê; push, ssh, disparo de workflow e publicação pedem confirmação; contornar hook por shell é proibido. (ADR 0002)
 3. Versões fixadas e conferidas; versão nova só depois de 7 dias publicada; script de instalação só de pacote aprovado. (ADR 0003)
 4. Um pacote, `src/{domain,game,ui,storage}`; `domain` puro (sem Phaser, DOM, `Math.random` nem `Date.now`); `game` e `ui` falam por eventos; constantes de física no `domain`. (ADR 0004)
-5. Fases geradas no build a partir de trechos do Tiled com semente fixa, versionadas no git; curva por grupos de 10; validador de alcance faz o build falhar; cada fase tem `contentHash`. (ADR 0013)
-6. 3 corações, tentativas ilimitadas; pontos só com a fase concluída; total = soma do melhor de cada fase. (ADR 0006)
-7. Um save por navegador, sem dado pessoal; recordes pessoais; schema versionado com migração; mescla entre abas; save corrompido preservado. (ADR 0007)
+5. Fases geradas no build a partir de trechos do Tiled com semente fixa, versionadas no git; curva por grupos de 10; validador de alcance faz o build falhar; trechos com rota alta; cada fase tem `contentHash`; tema por bloco de tiers. (ADR 0013, ADR 0015)
+6. 3 corações; modo livre com tentativas ilimitadas, pontos só com a fase concluída e total = soma do melhor de cada fase; modo desafio com partida desde a fase 1, vidas, vida extra que não volta e game over. (ADR 0014)
+7. Um save por navegador, sem dado pessoal (exceto o apelido do top 10, só local); recordes pessoais; schema versionado com migração; mescla entre abas; save corrompido preservado. (ADR 0007)
 8. Só assets CC0 ou OFL; só os arquivos usados, em `assets/kenney/`, conferidos por hash; crédito à Kenney. (ADR 0008)
 9. Menus em HTML sobre o canvas, WCAG 2.2 AA; resolução 480×270 em escala inteira; teclado e toque com os mesmos comandos; opção de reduzir efeitos; pt-BR. (ADR 0009)
 10. `domain` com cobertura ≥ 95%; `levels:check` no CI; E2E com axe e sem violação de CSP. (ADR 0010)
 11. Caddy estático na VM da plataforma fahledu, sem cookie nem rastreio, CSP estrita, deploy manual por SHA. (ADR 0011)
-12. Trechos e fases manuais escritos por agente no subconjunto do Tiled conferido pelo build. (ADR 0012)
+12. Trechos e fases manuais escritos por agente no subconjunto do Tiled conferido pelo build; nenhum inimigo no arco de um salto obrigatório. (ADR 0012)
 
 Antes de mexer numa área, leia o ADR dela.
 

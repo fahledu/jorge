@@ -2,20 +2,23 @@
 
 - Status: Aceito
 - Data: 2026-11-18
+- Revisão: 2026-11-20, partida e top 10 do modo desafio, apelido e `storySeen`
+  (ADR 0014); antes da primeira versão publicada, sem subir o `schemaVersion`.
 
 ## Contexto
 O jogo é público e aberto: qualquer pessoa que abrir o site joga, sem conta e sem
 login. O save e o "ranking" ficam só no navegador; o ranking é da própria pessoa (os
-recordes dela por fase e o total), sem competição com outros jogadores. O formato do
+recordes dela por fase e o total) e, no modo desafio, o top 10 das partidas feitas no
+mesmo navegador (ADR 0014), sem competição com outros aparelhos. O formato do
 save vai mudar com as versões do jogo, e um save perdido ou corrompido é a pior falha
 possível para quem joga.
 
 ## Decisão
 
 ### Um save por navegador, sem perfil
-- Um único save por navegador (origem). **Sem perfis e sem apelido:** o recorde é
-  pessoal, e quem divide o navegador divide o save. Assim o jogo não guarda nenhum dado
-  pessoal.
+- Um único save por navegador (origem). **Sem perfis:** o recorde é pessoal, e quem
+  divide o navegador divide o save. **O único dado digitado é o apelido do top 10**
+  (regra, caracteres e motivo no ADR 0014); fora ele, o jogo não guarda dado pessoal.
 - Tudo no `localStorage` da origem, numa chave só: `game.save` (o nome não muda com o
   nome do produto). Só `src/storage` lê e grava (ADR 0004). Os dados têm poucos KB e a
   escrita de uma chave é atômica.
@@ -29,7 +32,7 @@ possível para quem joga.
   schemaVersion: 1,
   unlockedLevel: number,                // 1 a 100
   levels: Record<string, {              // "1".."100", só fases concluídas
-    best: {                             // tentativa concluída de maior pontuação (ADR 0006)
+    best: {                             // tentativa concluída de maior pontuação (ADR 0014)
       score: number,
       timeMs: number,
       enemiesDefeated: number,
@@ -39,9 +42,35 @@ possível para quem joga.
     bestTimeMs: number,                 // menor tempo de uma tentativa concluída
     completions: number,                // vezes que a fase foi concluída (≥ 1)
   }>,
+  challenge: {                          // modo desafio (ADR 0014)
+    run: null | {                       // partida em andamento ou encerrada pendente
+      id: number,                       // runId da partida
+      seq: number,                      // sobe a cada gravação da partida
+      level: number,                    // fase atual, 1 a 100
+      lives: number,                    // 0 a 9
+      score: number,
+      levelsCleared: number,
+      secretsTaken: number[],           // fases cujo item secreto já foi pego
+      attemptOpen: boolean,             // tentativa começada e não terminada
+      ended: null | 'gameover' | 'cleared' | 'quit',
+    },
+    lastRunId: number,                  // maior id já usado; partida nova usa o seguinte
+    top: Array<{                        // até 10, na ordem do top 10 (ADR 0014)
+      runId: number,
+      nickname: string,
+      score: number,
+      levelsCleared: number,
+      outcome: 'gameover' | 'cleared' | 'quit',
+    }>,
+  },
+  storySeen: boolean,                   // historinha da fase 1 já vista (item 1j2)
   settings: { reduceEffects: boolean, touchControls: 'auto' | 'on' | 'off' },
 }
 ```
+
+- Os nomes finais dos campos de `challenge` saem no plano do 1i2; a estrutura é esta.
+- Enquanto nenhuma versão foi publicada (antes do item 1l), o formato muda sem subir o
+  `schemaVersion` e sem migração: não há save real a migrar.
 
 - `best` e `bestTimeMs` são independentes (podem vir de tentativas diferentes). Empate
   de pontuação: fica a tentativa de menor `timeMs`.
@@ -68,13 +97,22 @@ possível para quem joga.
   Nunca apaga o texto sem cópia.
 
 ### Gravação e várias abas
-- Grava ao concluir fase, ao mudar configuração e ao apagar o progresso.
+- Grava ao concluir fase, ao mudar configuração e ao apagar o progresso; no desafio,
+  também ao começar a tentativa (`attemptOpen` = true), ao morrer, ao pegar a vida extra,
+  ao concluir a fase e ao encerrar a partida (inclusive ao gravar ou descartar o placar).
 - Toda gravação lê o save atual, **mescla** e grava: `unlockedLevel` = maior dos dois;
   por fase, `best` = o de maior `score` (empate: menor `timeMs`), `bestTimeMs` = menor,
   `completions` = maior.
-  Configuração: vale a última gravação. Duas abas não apagam o progresso uma da outra.
+  Configuração e `storySeen`: vale a última gravação. Duas abas não apagam o progresso
+  uma da outra.
+- **Partida do desafio entre abas:** cada gravação da partida confere `id` e `seq` do save
+  com os da aba; diferentes → a aba não grava, avisa "Esta partida continua em outra aba"
+  e volta ao menu. Gravou → `seq` + 1. Gravação que não é da partida mantém `run` e
+  `lastRunId` do save atual. Ao abrir com `attemptOpen` = true, a tentativa interrompida
+  conta como morte (ADR 0014).
+- **Top 10 entre abas:** união por `runId`, na ordem do top 10, os 10 primeiros.
 - **Apagar progresso** (nas configurações) pede confirmação em duas etapas e grava o
-  save vazio sem mesclar.
+  save vazio sem mesclar; apaga também a partida e o top 10 (com os apelidos).
 - Armazenamento indisponível (modo privado, cota, bloqueado) → o jogo roda, avisa
   uma vez "Seu progresso não será salvo neste navegador" e mantém o estado em memória.
 
@@ -109,10 +147,9 @@ possível para quem joga.
   deploy, ADR 0011).
 
 ## Descartado
-- **Perfis com apelido no mesmo navegador:** o recorde é pessoal e não há competição
-  local; perfis trariam dado pessoal (apelido), telas e regras de unicidade sem pedido.
-- **Apelido opcional "para o futuro":** dado pessoal sem uso agora; se o ranking global
-  vier, a identificação será desenhada junto com ele.
+- **Perfis com apelido no mesmo navegador:** o recorde por fase é pessoal; perfis
+  trariam telas, troca de perfil e regras de unicidade sem pedido. O apelido do top 10
+  só identifica um placar, não separa saves.
 - **IndexedDB:** API assíncrona e mais código para poucos KB.
 - **Ranking global ou save na nuvem no MVP:** exige backend, identificação, moderação e
   antifraude; ficam na Fase 2 (proposta) do roadmap, sem decisão aqui.

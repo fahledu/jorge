@@ -1,7 +1,9 @@
 # 0006. Regras do jogo e pontuação
 
-- Status: Aceito
+- Status: Substituído por 0014
 - Data: 2026-11-18
+- Substituído em 2026-11-20 pelo [ADR 0014](0014-mortes-vidas-e-item-secreto.md), que
+  repete estas regras (modo livre) e acrescenta o modo desafio.
 
 ## Contexto
 Os recordes pessoais são por pontos ganhos derrotando inimigos e passando de fase. O

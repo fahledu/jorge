@@ -28,7 +28,8 @@ que terminou").
 - **MVP entregue quando:** no domínio de produção (ADR 0011), num notebook com teclado e
   num celular em paisagem com toque, um jogador sem conta nem cadastro abre o site,
   conclui a fase 1, vê a fase 2 liberada e o recorde da fase 1 na tela de recordes,
-  fecha e reabre o navegador e encontra o mesmo progresso; as 100 fases passam no
+  fecha e reabre o navegador e encontra o mesmo progresso; joga uma partida do desafio
+  até o fim e vê o apelido no top 10; as 100 fases passam no
   `levels:check` do CI e o E2E conclui cada uma pelo atalho de teste; o dono jogou à mão
   as fases 1, 10, 50 e 100 até a bandeira, com média de 55 fps ou mais nos dois
   aparelhos.
@@ -117,43 +118,97 @@ que terminou").
 - **Pronto quando:** os casos-limite do ADR 0013 passam; as 100 fases existem, passam no
   validador e abrem no jogo; `levels:check` falha com um arquivo gerado editado à mão.
 
+### 1g2. Temas e inimigos novos
+- **Escopo:** pedido depois do teste à mão do 1g ("todas as fases têm a mesma cara").
+  Tema por bloco de tiers (campo, deserto, neve): fundo do tema, troca de terreno e
+  decoração da paleta base pelo gerador, variantes de sprite dos inimigos por tema;
+  inimigos novos espinhoso e voador vertical, e o tipo de spawn do item secreto (só o
+  spawn, o sorteio de um por fase e o sprite; o efeito, só no desafio, é do 1i2); assets
+  novos do pack copiados e registrados; as 100 fases regeneradas com os 10 trechos
+  provisórios.
+- **ADRs:** 0015, 0014 (inimigos e spawn do item secreto), 0013, 0012, 0008.
+- **Depende de:** 1g; ADRs 0014 e 0015 aceitos.
+- **Pronto quando:** os casos-limite do ADR 0015 passam; `?fase=1`, `31` e `61` mostram
+  os três temas; espinhoso fere ao ser pisado e voador vertical é derrotado pisando, na
+  fase 1 ou num trecho de teste.
+
 ### 1h. Biblioteca de trechos e ajuste da curva
 - **Escopo:** pelo menos 30 trechos escritos por um agente no formato do Tiled, 3 ou
-  mais por dificuldade de 1 a 10, com terreno variado (grama, terra, neve, areia) e
-  spawns; ajuste dos números da curva pelo teste à mão (mudança de número vai para o
-  ADR 0013).
-- **ADRs:** 0013, 0008, 0012.
-- **Depende de:** 1g.
-- **Pronto quando:** fases 1, 10, 50 e 100 jogadas à mão até a bandeira pelo roteiro;
-  as 100 fases regeneradas passam no `levels:check`.
+  mais por dificuldade de 1 a 10, na paleta base (o terreno de cada fase vem do tema,
+  ADR 0015), com spawns de todos os inimigos e um item secreto em lugar difícil em boa
+  parte deles; caminhos alternativos: tag `alt` e pelo menos 1 trecho em cada 3, por
+  dificuldade, com rota alta mais difícil e com mais moedas, onde fica o item secreto
+  (adição do ADR 0013); conferência no build de nenhum inimigo no arco de um salto
+  obrigatório, pendente da rodada à mão do 1g (adição do ADR 0012); os 10 trechos
+  provisórios saem ou são refeitos; ajuste dos números da curva pelo teste à mão (mudança
+  de número vai para o ADR 0013).
+- **ADRs:** 0013, 0014, 0015, 0008, 0012.
+- **Depende de:** 1g2; adições dos ADRs 0012 e 0013 aceitas.
+- **Pronto quando:** fases 1, 10, 50 e 100 jogadas à mão até a bandeira pelo roteiro,
+  tentando a rota alta onde houver; as 100 fases regeneradas passam no `levels:check`;
+  os casos-limite das duas adições passam (unidade).
 
 ### 1i. Save, progresso e recordes
 - **Escopo:** `storage` com o formato, schema, migração, mescla e tratamento de save
   ilegível, de versão nova e de armazenamento indisponível; fase liberada e recordes por
-  fase (pontos, tempo, inimigos, moedas, `contentHash` da fase, conclusões); apagar progresso; "Novo recorde!" no fim da fase.
+  fase (pontos, tempo, inimigos, moedas, `contentHash` da fase, conclusões); apagar progresso; "Novo recorde!" no fim da fase. Só o modo livre; a partida do desafio,
+  o top 10 e `storySeen` entram no formato no 1i2 e no 1j2, ainda na versão 1 (nada
+  publicado antes do 1l, ADR 0014).
 - **ADRs:** 0004, 0006, 0007.
 - **Depende de:** 1f.
 - **Pronto quando:** os casos-limite do ADR 0007 passam (unidade, com fixture da
   versão 1); recarregar a página mantém o progresso.
 
+### 1i2. Modo desafio: partida, vidas e top 10
+- **Escopo:** pedido depois do teste à mão do 1g. Regras puras da partida no `domain`
+  (começo, morte, vida extra que não volta, conclusão, fim de jogo, zerar, desistir,
+  tentativa interrompida); item secreto só no desafio; vidas no HUD; partida no save com
+  `id` e `seq` contra outra aba; top 10 com a ordem e a validação do apelido, mescla
+  entre abas; conclusão no desafio grava também no livre. Entrada provisória
+  `?modo=desafio` só no `pnpm dev` (os menus são do 1j).
+- **ADRs:** 0014, 0007, 0004.
+- **Depende de:** 1i, 1g2; ADR 0014 aceito (com as mudanças no 0007).
+- **Pronto quando:** os casos-limite do ADR 0014 passam (unidade); no `pnpm dev`, pegar
+  a vida extra, morrer, fechar a aba no meio de uma fase e voltar mostra as vidas certas
+  e o item ausente.
+
 ### 1j. Menus, seleção de fase e recordes
-- **Escopo:** título ("Jogar"), seleção de fase (liberadas e o recorde de cada uma),
-  tela de recordes (total, fases concluídas, por fase pontos e tempo), pausa (continuar,
-  recomeçar, sair), configurações (reduzir efeitos, controles de toque, apagar
-  progresso com confirmação), créditos com o aviso de onde o progresso fica,
-  fim de jogo, aviso de versão nova, "Carregando" e "Erro de tela"; textos pt-BR do
-  mockup.
-- **ADRs:** 0006, 0007, 0009.
-- **Depende de:** 1i.
+- **Escopo:** título com a escolha do modo ("Livre", "Desafio" com "Continuar
+  partida" ou "Nova partida"), seleção de fase do livre (liberadas e o recorde de cada
+  uma), tela de recordes (total, fases concluídas, por fase pontos e tempo) e top 10 do
+  desafio, pausa (continuar, recomeçar, sair; no desafio, aviso de que sair custa uma vida,
+  e "Desistir da partida"), fim da partida com a janela do apelido, configurações
+  (reduzir efeitos, controles de toque, apagar progresso com confirmação, que apaga
+  também o top 10), créditos com o aviso de onde o progresso e o apelido ficam, fim de
+  jogo do livre, aviso de versão nova, "Carregando" e "Erro de tela"; textos pt-BR do
+  mockup. Antes de codar, a sessão principal atualiza mockup e `docs/DESIGN.md` com as
+  telas novas (modo, vidas no HUD, fim da partida, top 10) e o usuário aprova.
+- **ADRs:** 0014, 0007, 0009.
+- **Depende de:** 1i2.
 - **Pronto quando:** todas as telas navegáveis só por teclado; axe sem violações em
-  cada uma; a fumaça do ADR 0010 passa completa.
+  cada uma; a fumaça do ADR 0010 passa completa; uma partida do desafio vai do título ao
+  apelido no top 10 só pelo teclado.
+
+### 1j2. Historinha da fase 1
+- **Escopo:** janela em HTML (diálogo modal sobre o canvas) que conta a história do jogo
+  e do Jorge e explica como ganhar e perder pontos e, no desafio, vidas. Aparece antes
+  da fase 1 na primeira vez (em qualquer modo), marcada no save (`storySeen`) só ao
+  fechar ou pular; botão "Pular"; reaberta pelo menu ("Como jogar"). Acessível pelo
+  ADR 0009: foco no primeiro botão, Esc fecha, sem tempo para ler, sem animação com
+  reduzir efeitos. Texto: rascunho do architect no plano do item, a partir das regras
+  dos ADR 0014; o usuário aprova antes de ir para `strings.ts`.
+- **ADRs:** 0009, 0014, 0007.
+- **Depende de:** 1j.
+- **Pronto quando:** na primeira visita a historinha abre antes da fase 1, "Pular" e Esc
+  fecham e ela não volta ao recarregar; abre de novo pelo menu; axe sem violações; lida
+  pelo Narrador do começo ao fim.
 
 ### 1k. Controles de toque e celular
 - **Escopo:** botões de toque (vários toques ao mesmo tempo), detecção e configuração,
   aviso de girar o aparelho, tela cheia, ajuste de escala abaixo de 2×; E2E no perfil de
   dispositivo celular do Playwright; desempenho medido.
 - **ADRs:** 0009, 0010.
-- **Depende de:** 1j.
+- **Depende de:** 1j2.
 - **Pronto quando:** os casos-limite de controle do ADR 0009 vistos num celular real;
   fase 50 com média de 55 fps ou mais nele.
 
@@ -174,7 +229,8 @@ Não é prioridade e não tem data: o usuário escolhe se e quando ela entra, ao
 Fase 1. Nada desta fase é regra (sem ADR Aceito) e a Fase 1 continua 100% estática,
 sem backend. Do lado do MVP, o preparo é só o que custa pouco: recordes por fase com
 pontos, tempo, inimigos, moedas e o `contentHash` da fase (ADR 0013, ADR 0007), e o
-domínio determinístico (ADR 0004).
+domínio determinístico (ADR 0004), com o que a nota "pontuação conferível" do ADR 0014
+diz para não fechar.
 
 - **Objetivo:** quem quiser compara a própria pontuação com a de outros jogadores e
   leva o progresso de um aparelho para outro.
@@ -221,11 +277,15 @@ sai desta lista, e o descartado também.
 - Conquistas e estatísticas (fora do MVP)
 - Fonte pixel com licença OFL nos títulos dos menus (fora do MVP, ADR 0009)
 - Outros idiomas (fora do MVP)
-- Fundo diferente por fase ou por tier (fora de escopo do plano 1b)
 - Plataformas atravessáveis por baixo (fora de escopo do plano 1c)
-- Voador com trajetória vertical ou em onda (fora de escopo do plano 1e)
+- Voador com trajetória em onda (fora de escopo do plano 1e; o vertical entrou no 1g2)
+- Passagem secreta (bloco falso, parede atravessável) levando ao item secreto (fora do MVP, ADR 0014)
+- Quarto tema visual, como noite ou caverna (fora do MVP, ADR 0015)
 - Quique mais alto ao pisar no inimigo segurando o pulo (fora de escopo do plano 1e)
 - Pontos flutuando no lugar do inimigo derrotado ou da moeda (fora de escopo do plano 1f)
 - Tempo-alvo do bônus visível durante a fase (fora de escopo do plano 1f)
 - Morros do fundo acompanhando a altura do chão ao longo da fase (fora de escopo do plano 1g)
 - Fases além das 100, geradas sem fim (fora de escopo do plano 1g)
+- Ranking global top 100 do desafio no servidor, com pódio dos 3 melhores: exige
+  pontuação conferível (nota do ADR 0014), moderação de apelido e LGPD, `connect-src` na
+  CSP (ADR 0011) e integração com a plataforma fahledu; detalhe na Fase 2 (fora do MVP)

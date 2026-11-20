@@ -2,6 +2,7 @@
 
 - Status: Aceito
 - Data: 2026-11-18
+- Revisão: 2026-11-20, tipos de spawn do ADR 0014 e inimigo fora do arco de salto.
 
 ## Contexto
 O ADR 0005 define as camadas e as propriedades de trechos e fases manuais, mas supunha
@@ -36,12 +37,25 @@ não muda nenhuma decisão dele.
   para `assets/kenney/Tiled/tileset-tiles.tsx`. GID 0 é vazio; os demais vão de 1 a
   `tilecount` do `.tsx` (180). Bits de espelhar e girar não são aceitos.
 - **Spawns:** objetos ponto (`point: true`) com `type` numa lista fechada: `start`,
-  `flag`, `walker`, `flyer`, `coin`, `heart`, `spring`. O ponto fica dentro do mapa; a
+  `flag`, `walker`, `flyer`, `spiky`, `flyer-v`, `coin`, `heart`, `spring`, `secret`
+  (espinhoso, voador vertical e item secreto: ADR 0014). O ponto fica dentro do mapa; a
   célula do spawn é `floor(x / 18)`, `floor(y / 18)`. Propriedade opcional `minTier`
-  (int, 1 a 10) só em `walker`, `flyer`, `coin`, `heart` e `spring`.
-- **Spawn de inimigo:** a célula de um `walker` ou `flyer` não é sólida nem espinho, e a
-  célula abaixo de um `walker` é sólida (espinho não conta). Vale para fases manuais e
-  trechos.
+  (int, 1 a 10) só em `walker`, `flyer`, `spiky`, `flyer-v`, `coin`, `heart`, `spring` e
+  `secret`.
+- **Spawn de inimigo:** a célula de um `walker`, `spiky`, `flyer` ou `flyer-v` não é
+  sólida nem espinho, e a célula abaixo de um `walker` ou `spiky` é sólida (espinho não
+  conta). Vale para fases manuais e trechos.
+- **Inimigo fora do arco de salto:** um inimigo sobre o vão transforma o salto obrigatório
+  em dano quase certo.
+  - **Vão:** sequência de colunas sem célula sólida que não seja espinho (cair nela é
+    morte). As bordas do vão são a coluna à esquerda e a à direita; a linha dos pés de uma
+    borda é a linha acima da sua célula sólida mais alta.
+  - **Arco do vão:** as colunas do vão, das linhas `min(pés das bordas) − folga` até
+    `max(pés das bordas)`, com a folga do validador (ADR 0013, 5 linhas).
+  - Nenhuma célula do trilho de um inimigo (o trilho calculado do terreno, de qualquer
+    tipo) fica dentro do arco de um vão. O build confere trechos, fases manuais e fases
+    geradas (pega também a junção de trechos) e falha com o arquivo, o id do spawn e a
+    coluna.
 - **Início e bandeira:** fase manual tem exatamente um `start` e um `flag`. Trecho só
   tem `start` se tiver a tag `start`, e só tem `flag` se tiver a tag `finish` (um de
   cada); os demais trechos não têm nenhum.
@@ -64,7 +78,7 @@ não muda nenhuma decisão dele.
   (`../../assets/kenney/Tilemap/tilemap_packed.png`), para a fase gerada também abrir
   no Tiled.
 - Fase manual tem as propriedades `levelNumber`, `tier`, `targetTimeSeconds`
-  (ADR 0006), `source` (caminho do `.tmj` relativo a `levels/`) e `contentHash`
+  (ADR 0014), `source` (caminho do `.tmj` relativo a `levels/`) e `contentHash`
   (ADR 0013); sem `seed`, `generatorVersion` nem lista de trechos.
 - Serialização canônica: chaves em ordem fixa, propriedades em ordem de nome, uma linha
   do mapa por linha de texto em `data`, LF e quebra de linha no fim. O `contentHash` é
@@ -83,6 +97,13 @@ não muda nenhuma decisão dele.
 - `source` do tileset apontando para `tileset-characters.tsx` → build falha.
 - `walker` com a célula de baixo vazia ou com espinho, ou `flyer` dentro de terreno →
   build falha com arquivo, camada, coluna e linha. `walker` sobre chão → aceito.
+- `spiky` com a célula de baixo vazia, ou `flyer-v` dentro de terreno → build falha;
+  `secret` com `minTier: 3` → aceito.
+- Voador com trilho de 6 tiles passando 2 linhas acima de um vão de 3 → build falha.
+- O mesmo voador 6 linhas acima dos pés das bordas → aceito.
+- Voador sobre um poço de espinhos sem chão → build falha (espinho não é chão).
+- Andador no chão, logo depois da borda de pouso → aceito (fora do arco; o pouso pode ser
+  perigoso, o salto não).
 
 ## Descartado
 - **Dono desenhando no Tiled:** decisão do usuário.

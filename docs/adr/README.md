@@ -62,7 +62,7 @@ Alternativas consideradas e por que não.
 | [0003](0003-stack-e-versoes.md) | Stack e versões | Aceito |
 | [0004](0004-arquitetura-e-estrutura-do-codigo.md) | Arquitetura e estrutura do código | Aceito |
 | [0005](0005-fases-gerador-por-trechos-e-curva-de-dificuldade.md) | Fases: gerador por trechos e curva de dificuldade | Substituído por 0013 |
-| [0006](0006-regras-do-jogo-e-pontuacao.md) | Regras do jogo e pontuação | Aceito |
+| [0006](0006-regras-do-jogo-e-pontuacao.md) | Regras do jogo e pontuação | Substituído por 0014 |
 | [0007](0007-save-e-ranking-locais.md) | Save e recordes locais | Aceito |
 | [0008](0008-assets-de-terceiros-e-licenca.md) | Assets de terceiros e licença | Aceito |
 | [0009](0009-interface-controles-e-acessibilidade.md) | Interface, controles e acessibilidade | Aceito |
@@ -70,6 +70,8 @@ Alternativas consideradas e por que não.
 | [0011](0011-hospedagem-ci-e-deploy.md) | Hospedagem, CI e deploy | Aceito |
 | [0012](0012-arquivos-tmj-autoria-por-agente-e-validade.md) | Arquivos .tmj: autoria por agente e validade | Aceito |
 | [0013](0013-fases-gerador-curva-e-validador.md) | Fases: gerador, curva e validador (substitui o 0005) | Aceito |
+| [0014](0014-mortes-vidas-e-item-secreto.md) | Modos livre e desafio, vidas e item secreto (substitui o 0006) | Aceito |
+| [0015](0015-temas-visuais-por-bloco-de-fases.md) | Temas visuais por bloco de fases | Aceito |
 
 ## Decisões ainda sem ADR
 
