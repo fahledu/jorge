@@ -1,4 +1,4 @@
-// Physics constants (ADR 0004) and the jump model the level validator uses (ADR 0005).
+// Physics constants (ADR 0004) and the jump model the level validator uses (ADR 0013).
 //
 // What the simulation reproduces, checked in Phaser 3.90 (`physics/arcade/World.js` and
 // `Body.js`), fixed step of 1/PHYSICS_FPS s:
@@ -50,6 +50,8 @@ export interface JumpOptions {
   run: boolean;
   /** Steps the jump stays held, counting the take-off step; held to the end if omitted. */
   holdSteps?: number;
+  /** Filled with the feet position after every step (x right, y down from the ground), px. */
+  trace?: { x: number; y: number }[];
 }
 
 export interface JumpResult {
@@ -87,6 +89,7 @@ export function simulateJump(options: JumpOptions): JumpResult {
     y += vy * dt;
     x += vx * dt;
     maxRise = Math.max(maxRise, -y);
+    options.trace?.push({ x, y });
     if (y >= 0 && vy > 0) break;
     control = stepMovement(
       control.state,
@@ -106,7 +109,7 @@ export interface JumpReach {
 
 /**
  * Held, running jump in tiles, without adding the body's width (conservative): the basis
- * of the reach limits of the level validator (ADR 0005), which ignores coyote and buffer.
+ * of the reach limits of the level validator (ADR 0013), which ignores coyote and buffer.
  */
 export function jumpReach(): JumpReach {
   const jump = simulateJump({ run: true });

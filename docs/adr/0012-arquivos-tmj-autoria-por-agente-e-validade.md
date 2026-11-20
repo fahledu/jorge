@@ -28,7 +28,7 @@ não muda nenhuma decisão dele.
   `"1.10"` e `tiledversion: "1.10.2"`), `orientation: "orthogonal"`,
   `renderorder: "right-down"`, `infinite: false`, `tilewidth` e `tileheight` 18,
   `height` 15, `compressionlevel: -1`, `nextlayerid` e `nextobjectid` maiores que todo id
-  usado. Largura de trecho conforme o ADR 0005; fase manual de 27 a 300 tiles.
+  usado. Largura de trecho conforme o ADR 0013; fase manual de 27 a 300 tiles.
 - Camadas, nesta ordem e só estas: `terrain` e `decor` (`tilelayer`, `data` como lista
   de inteiros com `width × height` itens, sem `encoding` nem compressão) e `spawns`
   (`objectgroup`, `draworder: "topdown"`). Ids de camada e de objeto únicos.
@@ -47,7 +47,7 @@ não muda nenhuma decisão dele.
   cada); os demais trechos não têm nenhum.
 - Espinho é tile da camada `terrain`, reconhecido pela tabela de `src/domain/tiles.ts`
   (ADR 0008), não spawn.
-- **Propriedades:** as do ADR 0005 para trecho; fase manual não tem nenhuma (o número
+- **Propriedades:** as do ADR 0013 para trecho; fase manual não tem nenhuma (o número
   vem do nome do arquivo). Propriedade, camada, tipo de spawn ou campo desconhecido é
   erro (pega erro de digitação).
 
@@ -58,14 +58,14 @@ não muda nenhuma decisão dele.
   precisa existir em `assets/kenney/`.
 
 ### Saída do build
-- A fase em `levels/generated/NNN.json` segue o ADR 0005, com o tileset embutido:
+- A fase em `levels/generated/NNN.json` segue o ADR 0013, com o tileset embutido:
   `name`, `tilewidth`, `tileheight`, `tilecount`, `columns`, `margin`, `spacing`,
   `imagewidth`, `imageheight` e `image` relativo à pasta de saída
   (`../../assets/kenney/Tilemap/tilemap_packed.png`), para a fase gerada também abrir
   no Tiled.
 - Fase manual tem as propriedades `levelNumber`, `tier`, `targetTimeSeconds`
   (ADR 0006), `source` (caminho do `.tmj` relativo a `levels/`) e `contentHash`
-  (ADR 0005); sem `seed`, `generatorVersion` nem lista de trechos.
+  (ADR 0013); sem `seed`, `generatorVersion` nem lista de trechos.
 - Serialização canônica: chaves em ordem fixa, propriedades em ordem de nome, uma linha
   do mapa por linha de texto em `data`, LF e quebra de linha no fim. O `contentHash` é
   calculado sobre essa serialização sem a propriedade `contentHash`.
@@ -89,7 +89,7 @@ não muda nenhuma decisão dele.
 - **Fonte em outro formato (texto ASCII, script de desenho) convertida para `.tmj`:**
   duas fontes para a mesma fase; o `.tmj` deixaria de ser editável no Tiled sem
   divergir da outra.
-- **Tileset embutido no `.tmj` de origem:** o ADR 0005 pede o externo; embutir repete a
+- **Tileset embutido no `.tmj` de origem:** o ADR 0013 pede o externo; embutir repete a
   folha em cada trecho.
 - **Tiles de objeto (`gid` no objeto) nos spawns:** exigiriam o tileset de personagens
   no mapa; ponto com `type` basta e o jogo escolhe o sprite.

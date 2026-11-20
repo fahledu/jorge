@@ -1,7 +1,10 @@
 # 0005. Fases: gerador por trechos e curva de dificuldade
 
-- Status: Aceito
+- Status: Substituído por 0013
 - Data: 2026-11-18
+
+> Substituído pelo [ADR 0013](0013-fases-gerador-curva-e-validador.md) em 2026-11-20. O
+> texto abaixo fica como histórico; a regra vigente está no 0013.
 
 ## Contexto
 O jogo tem 100 fases de dificuldade crescente. Desenhar 100 fases à mão não cabe no

@@ -23,6 +23,7 @@ import {
   stepPatrol,
 } from "../../domain/enemies.ts";
 import {
+  ColumnIndex,
   cellOf,
   feetIn,
   flagZone,
@@ -71,22 +72,25 @@ const FLAG_WAVE = "flag-wave";
 const FLAG_FPS = 4;
 /**
  * First theme of the background sheet (4 tiles of 24 px wide, opaque): sky, a band of
- * clouds and hills, and a base. The band sits just above the ground row of the tutorial
- * (row 12), so the hills show behind the terrain; sky above it, base below.
+ * clouds and hills, and a base. The band starts 2 tiles above the ground under the start
+ * and ends 12 px above it (plan 1g, decision 4: top at 180 px on level 1, ground on row 12),
+ * so the hills show behind the
+ * terrain; sky above it, base below. It does not follow the ground along the level.
  */
-// Fixed for level 1 (ground on row 12); provisional until levels with other ground rows (1g).
-const BAND_TOP = 180;
 const BAND_HEIGHT = 24;
-const BACKGROUND_STRIPS = [
-  { frame: "sky", sheetY: 0, y: 0, height: BAND_TOP },
-  { frame: "band", sheetY: 24, y: BAND_TOP, height: BAND_HEIGHT },
-  {
-    frame: "base",
-    sheetY: 48,
-    y: BAND_TOP + BAND_HEIGHT,
-    height: GAME_HEIGHT - BAND_TOP - BAND_HEIGHT,
-  },
-] as const;
+const BAND_ABOVE_GROUND = 2 * TILE_SIZE;
+
+function backgroundStrips(groundRow: number) {
+  const top = Math.min(
+    Math.max(0, groundRow * TILE_SIZE - BAND_ABOVE_GROUND),
+    GAME_HEIGHT - BAND_HEIGHT,
+  );
+  return [
+    { frame: "sky", sheetY: 0, y: 0, height: top },
+    { frame: "band", sheetY: 24, y: top, height: BAND_HEIGHT },
+    { frame: "base", sheetY: 48, y: top + BAND_HEIGHT, height: GAME_HEIGHT - top - BAND_HEIGHT },
+  ];
+}
 const THEME_WIDTH = 96;
 /** The background scrolls at half the speed of the terrain (plan 1b). */
 const BACKGROUND_SCROLL = 0.5;
@@ -201,10 +205,22 @@ export class LevelScene extends Phaser.Scene {
   #attempt: AttemptState = initialAttempt();
   #pickups: Pickup[] = [];
   #springs: Spring[] = [];
-  #spikes: Rect[] = [];
   #enemies: EnemyEntry[] = [];
+  // Still things by column (plan 1g, decision 5): a step looks only where the player is.
+  #spikeIndex = new ColumnIndex<Rect>([], (box) => box, 0);
+  #pickupIndex = new ColumnIndex<Pickup>([], (pickup) => pickup.box, 0);
+  #springIndex = new ColumnIndex<Spring>([], (spring) => spring.box, 0);
+  // Reused every step, emptied by the queries: nothing is allocated when nothing is touched.
+  readonly #nearSpikes: Rect[] = [];
+  readonly #nearPickups: Pickup[] = [];
+  readonly #nearSprings: Spring[] = [];
+  readonly #touchedSpikes: Rect[] = [];
+  readonly #itemContacts: ItemContact[] = [];
+  readonly #enemyContacts: (EnemyContact & { box: Rect })[] = [];
+  readonly #box: Rect = { left: 0, top: 0, right: 0, bottom: 0 };
   /** Test hook: enemies stand still (kept across restarts). */
   #enemiesFrozen = false;
+  #mounts = 0;
   #hud!: Hud; // set in create()
   /** Test hook: the summary of the last completed attempt (kept across restarts). */
   #lastSummary: ScoreSummary | null = null;
@@ -218,6 +234,11 @@ export class LevelScene extends Phaser.Scene {
 
   get status(): LevelStatus {
     return this.#status;
+  }
+
+  /** Goes up every time the scene starts (a new level or a restart); for the test hooks. */
+  get mounts(): number {
+    return this.#mounts;
   }
 
   get attempt(): number {
@@ -240,6 +261,7 @@ export class LevelScene extends Phaser.Scene {
   }
 
   init(data: LevelSceneData): void {
+    this.#mounts += 1;
     this.#data = data;
     this.#movement = initialMovement();
     this.#onGround = false;
@@ -247,7 +269,6 @@ export class LevelScene extends Phaser.Scene {
     this.#attempt = initialAttempt();
     this.#pickups = [];
     this.#springs = [];
-    this.#spikes = [];
     this.#enemies = [];
     this.#dying = null;
   }
@@ -272,18 +293,20 @@ export class LevelScene extends Phaser.Scene {
     const tileset = map.addTilesetImage(info.tilesetName, TILES);
     if (!tileset) throw new Error(`tileset ${info.tilesetName} not found in level ${key}`);
 
-    this.#createBackground();
+    this.#createBackground(info.groundRow);
     map.createLayer("decor", tileset);
     const terrain = map.createLayer("terrain", tileset);
     if (!terrain) throw new Error(`level ${key} has no terrain layer`);
     // Every terrain tile is solid on all four sides (plan 1c, decision 10), except the
     // spikes (plan 1d, decision 1). Phaser's tile index is the GID, not the local id.
     terrain.setCollisionByExclusion([-1, ...SPIKE_TILES.map(gidOf)]);
-    this.#spikes = info.spikes.map(spikeBox);
+    this.#spikeIndex = new ColumnIndex(info.spikes.map(spikeBox), (box) => box, info.widthInTiles);
 
     this.#flag = flagZone(info.flag);
     this.#createFlag(info.flag);
     this.#createItems(info.items);
+    this.#pickupIndex = new ColumnIndex(this.#pickups, (pickup) => pickup.box, info.widthInTiles);
+    this.#springIndex = new ColumnIndex(this.#springs, (spring) => spring.box, info.widthInTiles);
     this.#createEnemies(info.enemies);
 
     const width = info.widthInTiles * TILE_SIZE;
@@ -425,22 +448,32 @@ export class LevelScene extends Phaser.Scene {
       this.#die(true);
       return;
     }
-    const box = { left: body.left, top: body.top, right: body.right, bottom: body.bottom };
-    const touchedSpikes = this.#spikes.filter((spike) => overlaps(box, spike));
-    const enemyContacts: (EnemyContact & { box: Rect })[] = this.#enemies
-      .filter((enemy) => enemy.defeatedMs === null && overlaps(box, enemy.box))
-      .map((enemy) => ({
-        id: enemy.info.id,
-        type: enemy.info.type,
-        stomp: isStomp(box, movedVy, enemy.box),
-        box: enemy.box,
-      }));
+    const box = this.#box;
+    box.left = body.left;
+    box.top = body.top;
+    box.right = body.right;
+    box.bottom = body.bottom;
+    const touchedSpikes = this.#touchedSpikes;
+    touchedSpikes.length = 0;
+    for (const spike of this.#spikeIndex.query(box.left, box.right, this.#nearSpikes)) {
+      if (overlaps(box, spike)) touchedSpikes.push(spike);
+    }
+    const enemyContacts = this.#enemyContacts;
+    enemyContacts.length = 0;
+    for (const enemy of this.#enemies) {
+      if (enemy.defeatedMs !== null || !overlaps(box, enemy.box)) continue;
+      const { id, type } = enemy.info;
+      enemyContacts.push({ id, type, stomp: isStomp(box, movedVy, enemy.box), box: enemy.box });
+    }
+    const itemContacts = this.#itemContacts;
+    itemContacts.length = 0;
+    for (const pickup of this.#pickupIndex.query(box.left, box.right, this.#nearPickups)) {
+      if (overlaps(box, pickup.box)) itemContacts.push(pickup.contact);
+    }
     const result = stepAttempt(
       this.#attempt,
       {
-        items: this.#pickups
-          .filter((pickup) => overlaps(box, pickup.box))
-          .map((pickup) => pickup.contact),
+        items: itemContacts,
         enemies: enemyContacts,
         hazard: touchedSpikes.length > 0,
         flag: overlaps(box, this.#flag),
@@ -468,22 +501,26 @@ export class LevelScene extends Phaser.Scene {
     // Impulse of the step (ADR 0006): a push wins over the bounce, the bounce over a spring.
     if (result.hurt) {
       const center = (rect: Rect): number => (rect.left + rect.right) / 2;
-      const sources = [
-        ...touchedSpikes,
-        ...enemyContacts.filter((contact) => !contact.stomp).map((contact) => contact.box),
-      ];
-      const source = sources.reduce((sum, rect) => sum + center(rect), 0);
-      const direction = knockbackDirection(
-        center(box),
-        source / sources.length,
-        this.#player.facing,
-      );
+      // Only on the step that hurts: the average centre of what hurt.
+      let sum = 0;
+      let count = 0;
+      for (const spike of touchedSpikes) {
+        sum += center(spike);
+        count += 1;
+      }
+      for (const contact of enemyContacts) {
+        if (contact.stomp) continue;
+        sum += center(contact.box);
+        count += 1;
+      }
+      const direction = knockbackDirection(center(box), sum / count, this.#player.facing);
       this.#apply(knockback(direction));
     } else if (result.stomped) {
       this.#apply(stompBounce(control.vx));
     }
     if (springLaunches(control.vy, result.hurt, result.stomped)) {
-      const spring = this.#springs.find((candidate) => overlaps(box, candidate.box));
+      const near = this.#springIndex.query(box.left, box.right, this.#nearSprings);
+      const spring = near.find((candidate) => overlaps(box, candidate.box));
       if (spring) {
         this.#apply(springBounce(control.vx));
         spring.compressedMs = SPRING_COMPRESSED_MS;
@@ -667,10 +704,10 @@ export class LevelScene extends Phaser.Scene {
       .play(FLAG_WAVE);
   }
 
-  #createBackground(): void {
+  #createBackground(groundRow: number): void {
     const sheet = this.textures.get(BACKGROUNDS).getSourceImage();
     if (!(sheet instanceof HTMLImageElement)) throw new Error("background sheet is not an image");
-    this.#background = BACKGROUND_STRIPS.map((strip) => {
+    this.#background = backgroundStrips(groundRow).map((strip) => {
       // A texture of its own per strip: a tile sprite of a frame inside the sheet samples
       // the neighbouring rows at its edges and shows seams.
       const textureKey = `${BACKGROUNDS}-${strip.frame}`;

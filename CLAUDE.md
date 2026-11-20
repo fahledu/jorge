@@ -86,9 +86,9 @@ pnpm dev                                     # jogo em http://localhost:5190 (Vi
 pnpm test                                    # todos os testes (Vitest)
 pnpm exec vitest run src/domain/score.test.ts   # um arquivo (-t "<nome>" para um teste)
 pnpm lint && pnpm typecheck                  # Biome e tsc
-pnpm levels:build                            # gera as fases em levels/generated/ (nasce no 1b; gerador no 1g)
+pnpm levels:build                            # gera as 100 fases em levels/generated/ (manuais e geradas)
 pnpm levels:preview <arquivo>                # prévia em PNG em .preview/ (--sheet: folha numerada)
-pnpm levels:check                            # confere as 100 fases (nasce no 1g)
+pnpm levels:check                            # confere que as fases versionadas são as que o gerador produz
 pnpm build                                   # build de produção
 pnpm e2e                                     # Playwright com axe (refaz o build de modo e2e, com o atalho de teste; preview em 5191)
 pnpm audit --prod --audit-level high         # auditoria de dependências
@@ -100,7 +100,7 @@ pnpm audit --prod --audit-level high         # auditoria de dependências
 2. Cada agente altera só a sua área; `.claude/` só com o usuário; segredo real só em `.env.local`, que agente só toca com a sua confirmação; chave privada e `.ssh` ninguém lê; push, ssh, disparo de workflow e publicação pedem confirmação; contornar hook por shell é proibido. (ADR 0002)
 3. Versões fixadas e conferidas; versão nova só depois de 7 dias publicada; script de instalação só de pacote aprovado. (ADR 0003)
 4. Um pacote, `src/{domain,game,ui,storage}`; `domain` puro (sem Phaser, DOM, `Math.random` nem `Date.now`); `game` e `ui` falam por eventos; constantes de física no `domain`. (ADR 0004)
-5. Fases geradas no build a partir de trechos do Tiled com semente fixa, versionadas no git; curva por grupos de 10; validador de alcance faz o build falhar; cada fase tem `contentHash`. (ADR 0005)
+5. Fases geradas no build a partir de trechos do Tiled com semente fixa, versionadas no git; curva por grupos de 10; validador de alcance faz o build falhar; cada fase tem `contentHash`. (ADR 0013)
 6. 3 corações, tentativas ilimitadas; pontos só com a fase concluída; total = soma do melhor de cada fase. (ADR 0006)
 7. Um save por navegador, sem dado pessoal; recordes pessoais; schema versionado com migração; mescla entre abas; save corrompido preservado. (ADR 0007)
 8. Só assets CC0 ou OFL; só os arquivos usados, em `assets/kenney/`, conferidos por hash; crédito à Kenney. (ADR 0008)

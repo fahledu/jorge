@@ -18,6 +18,9 @@ export interface LevelCells {
   spikes: Cell[];
   items: (Cell & { id: number; type: string })[];
   enemies: (Cell & { id: number; type: string })[];
+  /** Columns open to the bottom of the map (plan 1g, decision 6). */
+  pits: number[];
+  width: number;
 }
 
 export interface JorgeTestHooks {
@@ -43,6 +46,8 @@ export interface JorgeTestHooks {
   level(): LevelCells | null;
   placePlayer(col: number, row: number): void;
   goToFlag(): void;
+  /** Opens level n in place of the current one; resolves once it is playing (plan 1g). */
+  openLevel(levelNumber: number): Promise<void>;
 }
 
 declare global {
@@ -51,7 +56,21 @@ declare global {
   }
 }
 
-export function installTestHooks(levelScene: () => LevelScene | null): void {
+/** Resolves when `ready` holds, checked once per animation frame. */
+function waitFor(ready: () => boolean): Promise<void> {
+  return new Promise((resolve) => {
+    const check = (): void => {
+      if (ready()) resolve();
+      else requestAnimationFrame(check);
+    };
+    check();
+  });
+}
+
+export function installTestHooks(
+  levelScene: () => LevelScene | null,
+  open: (levelNumber: number) => Promise<void>,
+): void {
   const playing = (): LevelScene | null => {
     const scene = levelScene();
     return scene && scene.status !== "loading" ? scene : null;
@@ -109,9 +128,25 @@ export function installTestHooks(levelScene: () => LevelScene | null): void {
           type: enemy.type,
           ...cellOf(enemy),
         })),
+        pits: info.pits,
+        width: info.widthInTiles,
       };
     },
     placePlayer: (col, row) => playing()?.placePlayer(col, row),
     goToFlag: () => playing()?.goToFlag(),
+    async openLevel(levelNumber) {
+      // The scene restarts on the next tick: wait for a new mount, not the old one playing.
+      const before = levelScene()?.mounts ?? 0;
+      await open(levelNumber);
+      await waitFor(() => {
+        const scene = levelScene();
+        return (
+          scene !== null &&
+          scene.mounts > before &&
+          scene.status === "playing" &&
+          scene.levelInfo.levelNumber === levelNumber
+        );
+      });
+    },
   };
 }

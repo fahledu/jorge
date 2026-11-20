@@ -36,7 +36,7 @@ sentido como recorde. As regras são usadas pelo jogo, pelo HUD e pelo save e re
 | Bônus de tempo | 10 × max(0, `targetTimeSeconds` − segundos inteiros usados) |
 
 - `targetTimeSeconds` = `ceil(largura da fase em tiles / 4)`, gravado na fase pelo
-  gerador (ADR 0005). O relógio pausa com o jogo pausado.
+  gerador (ADR 0013). O relógio pausa com o jogo pausado.
 - Morreu → os pontos da tentativa somem.
 - **Recorde da fase:** de cada fase, guarda-se a maior pontuação e o menor tempo de
   tentativas concluídas (ADR 0007).

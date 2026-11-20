@@ -7,13 +7,15 @@ import {
   jumpReach,
   MAX_FALL_SPEED,
   PHYSICS_FPS,
+  PLAYER_BODY,
   SPRING_SPEED,
   STEP_MS,
   simulateJump,
   springRise,
 } from "./physics.ts";
+import { TILE_SIZE } from "./tmj.ts";
 
-describe("jump reach (roadmap 1c, ADR 0005)", () => {
+describe("jump reach (roadmap 1c, ADR 0013)", () => {
   it("held jump rises at least 4 tiles and less than 5", () => {
     const { heightTiles } = jumpReach();
     expect(heightTiles).toBeGreaterThanOrEqual(4);
@@ -78,5 +80,16 @@ describe("springRise (plan 1d)", () => {
 
   it("moves less than half a tile per step", () => {
     expect(SPRING_SPEED / PHYSICS_FPS).toBeLessThan(9);
+  });
+});
+
+describe("the validator's corner case fits the real jump (ADR 0013)", () => {
+  it("is past a gap of 3 plus the body when coming down to a ledge 3 tiles up", () => {
+    const trace: { x: number; y: number }[] = [];
+    simulateJump({ run: true, trace });
+    const peak = trace.reduce((best, p, i) => (p.y < (trace[best]?.y ?? 0) ? i : best), 0);
+    const landing = trace.slice(peak).find((p) => p.y >= -3 * TILE_SIZE);
+    expect(landing).toBeDefined();
+    expect(landing?.x ?? 0).toBeGreaterThanOrEqual(3 * TILE_SIZE + PLAYER_BODY.width);
   });
 });

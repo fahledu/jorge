@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { makeMap, TILESET } from "./fixtures/maps.ts";
 import {
+  buildGeneratedLevel,
   buildManualLevel,
   type ManualLevelInput,
   readLevelInfo,
@@ -142,6 +143,8 @@ describe("buildManualLevel", () => {
       items: [],
       spikes: [],
       enemies: [],
+      pits: [],
+      groundRow: 12,
     });
   });
 });
@@ -212,9 +215,68 @@ describe("readLevelInfo", () => {
     ]);
   });
 
+  it("reads the pits and the ground row below the start of level 1", () => {
+    const tmj = JSON.parse(readFileSync("levels/manual/001.tmj", "utf8"));
+    const info = readLevelInfo(JSON.parse(buildManualLevel(input(mapOf(tmj))).json));
+    expect(info.pits).toEqual([38, 39, 46, 47, 48]);
+    expect(info.groundRow).toBe(12);
+  });
+
+  it("takes the last row as the ground when the start has none below", () => {
+    const map = mapOf(makeMap(27));
+    map.terrain = map.terrain.map((gid, index) => (index % 27 === 1 ? 0 : gid));
+    const info = readLevelInfo(JSON.parse(buildManualLevel(input(map)).json));
+    expect(info.groundRow).toBe(14);
+    expect(info.pits).toEqual([1]);
+  });
+
   it("rejects a spawn without an id", () => {
     const file = level();
     delete file.layers[2].objects[0].id;
     expect(() => readLevelInfo(file)).toThrow(/generated format/);
+  });
+});
+
+describe("buildGeneratedLevel", () => {
+  const generated = () => {
+    const map = { ...mapOf(makeMap(40)), kind: "generated" as const };
+    return buildGeneratedLevel({
+      levelNumber: 37,
+      seed: 123,
+      chunks: ["start", "meadow", "finish"],
+      map,
+      tileset: TILESET,
+      imagePath: IMAGE,
+      sha256,
+    });
+  };
+
+  it("writes the generated properties in name order", () => {
+    const level = JSON.parse(generated().json);
+    expect(level.properties).toEqual([
+      { name: "chunks", type: "string", value: "start,meadow,finish" },
+      { name: "contentHash", type: "string", value: generated().contentHash },
+      { name: "generatorVersion", type: "int", value: 1 },
+      { name: "levelNumber", type: "int", value: 37 },
+      { name: "seed", type: "int", value: 123 },
+      { name: "targetTimeSeconds", type: "int", value: 10 },
+      { name: "tier", type: "int", value: 4 },
+    ]);
+  });
+
+  it("hashes the file without its contentHash", () => {
+    const { json, contentHash } = generated();
+    const level = JSON.parse(json);
+    expect(contentHash).toMatch(/^[0-9a-f]{16}$/);
+    const without = json.replace(/\n {4}\{\n {6}"name": "contentHash"[^}]*\},/, "");
+    expect(without).not.toBe(json);
+    expect(sha256(without).slice(0, 16)).toBe(contentHash);
+    expect(readLevelInfo(level).levelNumber).toBe(37);
+  });
+
+  it("refuses a level number outside 1 to 100", () => {
+    const map = mapOf(makeMap(40));
+    const base = { seed: 1, chunks: [], map, tileset: TILESET, imagePath: IMAGE, sha256 };
+    expect(() => buildGeneratedLevel({ ...base, levelNumber: 101 })).toThrow(/level number/);
   });
 });

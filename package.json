@@ -22,6 +22,7 @@
     "test:coverage": "vitest run --coverage",
     "e2e": "playwright test",
     "levels:build": "node scripts/build-levels.ts",
+    "levels:check": "node scripts/check-levels.ts",
     "levels:preview": "node scripts/level-preview.ts"
   },
   "dependencies": {

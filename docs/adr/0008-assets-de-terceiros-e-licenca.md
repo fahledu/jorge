@@ -23,7 +23,7 @@ Pack inteiro no git pesa e mistura o que se usa com o que não se usa.
 - **A pasta `kenney_pixel-platformer/` da raiz sai do git** (`.gitignore`); fica só como
   fonte local para copiar arquivo novo quando um trecho precisar.
 - **Atualizar o pack** (versão nova da Kenney): cópia nova, hashes novos, `levels:check`
-  (ADR 0005) e o jogo testado à mão; ids de tile mudados quebram trechos e precisam de
+  (ADR 0013) e o jogo testado à mão; ids de tile mudados quebram trechos e precisam de
   plano.
 - **Crédito:** a tela de créditos diz "Gráficos: Kenney (kenney.nl), licença CC0".
 - **Fontes (se alguma entrar; hoje os menus usam a do sistema, ADR 0009), sons e

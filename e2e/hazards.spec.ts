@@ -3,8 +3,12 @@ import type { Cell } from "../src/domain/geometry.ts";
 import { TILE_SIZE } from "../src/domain/tmj.ts";
 import { watchProblems } from "./problems.ts";
 
-/** Column of the first gap of level 1 (levels/manual/001.tmj). */
-const GAP_COL = 38;
+/** First column open to the bottom of the level (plan 1g, decision 6). */
+async function firstPit(page: Page): Promise<number> {
+  const pit = await page.evaluate(() => window.__jorgeTest?.level()?.pits[0]);
+  if (pit === undefined) throw new Error("the level has no pit");
+  return pit;
+}
 
 let problems: string[] = [];
 // Cells of level 1, read from the test hook (no fixed columns).
@@ -130,7 +134,7 @@ test("0 hearts turns into the angel, then restarts with everything back", async 
 });
 
 test("falling out of the map also shows the angel before restarting", async ({ page }) => {
-  await place(page, GAP_COL, 10);
+  await place(page, await firstPit(page), 10);
   await page.waitForFunction(() => window.__jorgeTest?.state().status === "dying");
   await page.waitForFunction(() => window.__jorgeTest?.state().attempt === 2);
 });

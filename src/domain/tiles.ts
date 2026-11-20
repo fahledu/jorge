@@ -32,3 +32,13 @@ export const WINGS_TILE = 144;
 export function gidOf(localId: number): number {
   return localId + 1;
 }
+
+/**
+ * Tiles with edge variants, as GIDs: alone, left edge, middle, right edge (palette in
+ * `levels/README.md`). The generator redraws them at the chunk joins (ADR 0013).
+ */
+export const EDGE_FAMILIES: readonly (readonly [number, number, number, number])[] = [
+  [21, 22, 23, 24], // grass on top of the ground
+  [121, 122, 123, 124], // dirt below the grass
+  [1, 2, 3, 4], // one-row platform
+];

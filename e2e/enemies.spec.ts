@@ -1,8 +1,12 @@
 import { expect, type Page, test } from "@playwright/test";
 import { watchProblems } from "./problems.ts";
 
-/** Column of the first gap of level 1 (levels/manual/001.tmj). */
-const GAP_COL = 38;
+/** First column open to the bottom of the level (plan 1g, decision 6). */
+async function firstPit(page: Page): Promise<number> {
+  const pit = await page.evaluate(() => window.__jorgeTest?.level()?.pits[0]);
+  if (pit === undefined) throw new Error("the level has no pit");
+  return pit;
+}
 /** Patrol of the walker between walls in level 1: centre from 2204 to 2422 px (plan 1e). */
 const WALL_WALKER = { id: 10, min: 2204, max: 2422 } as const;
 
@@ -111,7 +115,7 @@ for (const type of ["walker", "flyer"] as const) {
     await frames(page, 10);
     expect((await state(page))?.hearts).toBe(3);
 
-    await place(page, GAP_COL, 10);
+    await place(page, await firstPit(page), 10);
     await page.waitForFunction(
       () =>
         window.__jorgeTest?.state().attempt === 2 &&

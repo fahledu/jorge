@@ -22,9 +22,9 @@ quebrado, não confirmar que está tudo certo.
 3. Sempre, em toda feature que toca o save: save de versão antiga migra (fixture por
    versão), save corrompido é preservado à parte e o jogo abre, duas abas não apagam o
    progresso uma da outra (ADR 0007). Em toda mudança no gerador ou na física: as 100
-   fases continuam passando no `levels:check` (ADR 0005).
+   fases continuam passando no `levels:check` (ADR 0013).
 
-Referência: regras do jogo (ADR 0006), save e recordes (ADR 0007), fases (ADR 0005),
+Referência: regras do jogo (ADR 0006), save e recordes (ADR 0007), fases (ADR 0013),
 testes e qualidade (ADR 0010).
 
 ## Tipos de teste

@@ -6,7 +6,7 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
 
 - **Última atualização:** 2026-11-20
 - **Fase:** Fase 1 (MVP).
-- **Próximo passo:** item **1g**: `/feature 1g`.
+- **Próximo passo:** rodada à mão do 1g (abaixo), depois o item **1h**: `/feature 1h`.
 
 ## Feito
 
@@ -72,6 +72,17 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
   1.070 pontos, confere; avisos e pausa conferidos). Com o Narrador ligado as setas não
   chegavam ao jogo; o canvas passou a `role="application"` e recebe o foco quando o jogo
   assume o teclado; conferido com o Narrador.
+- 1g: gerador de fases e validador. ADR 0013 substitui o 0005 (lacunas e duas
+  contradições do 0005; o modelo do pulo foi corrigido na implementação: o pulo não
+  atravessa teto). `prng.ts`, `curve.ts`, `generator.ts` e `reach.ts` no `domain`;
+  `scripts/levels.ts` planeja as 100 fases, `levels:build` grava e `levels:check` (no CI)
+  compara; 10 trechos provisórios em `levels/chunks/` (tabela em `levels/README.md`); as
+  100 fases versionadas, a 1 sem mudança. `?fase=N` só no `pnpm dev`; `openLevel(n)`,
+  `pits` e `width` no atalho de teste; faixa de morros pelo chão sob o início; passo da
+  cena sem alocar (`ColumnIndex` e arrays reaproveitados). E2E abre e conclui as 100
+  fases. Desvios do plano: `SEED_BASE` em `prng.ts` e `GENERATOR_VERSION` em `level.ts`
+  (o jogo não leva o gerador); trechos escritos por um script de desenho em ASCII fora do
+  repositório, conferidos pela prévia em PNG.
 
 ## Limites aceitos
 
@@ -95,15 +106,16 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
 
 ## Questões em aberto
 
-- No 1g: a cena aloca arrays e objetos a cada passo (contatos, `stepAttempt`, inimigos);
-  com fases de muitos itens, evitar (revisões do 1d e do 1e).
-- No 1g: os E2E de queda usam a coluna 38 fixa (vão da fase 1), porque `level()` não
-  expõe o terreno; expor os vãos quando a fase mudar. O efeito de derrota com reduzir
-  efeitos não tem E2E (só unidade e roteiro).
+- Rodada à mão do 1g, não feita: `?fase=2`, `50` e `100` no `pnpm dev` (morros, junções,
+  chegar à bandeira) e o fps da fase 100 (meta do ADR 0010, 55 de média). Firefox também
+  não verificado.
+- E2E em paralelo nesta máquina: com os workers padrão, cerca de 20 testes falham por
+  erro do próprio Playwright (trace truncado, navegador fechado); com `--workers=1` os 41
+  passam. Não conferido se já acontecia antes do 1g; se repetir, fixar `workers` no
+  `playwright.config.ts` (devops).
+- O efeito de derrota com reduzir efeitos não tem E2E (só unidade e roteiro).
+- `pnpm audit` não rodou no 1f nem no 1g (sem dependência nova).
 
-- Ambiente: o Node 26 desta máquina não tem corepack e o `pnpm` não roda; o 1f foi
-  verificado com os binários de `node_modules/.bin` e `npm run`. `pnpm audit` não rodou
-  (sem dependência nova). Consertar com `npm i -g corepack` e `corepack enable`.
 
 - Confirmar: sem analytics nem rastreio de qualquer tipo (suposição do ADR 0007); a
   hipótese do MVP é medida por teste com 5 pessoas (`docs/ROADMAP.md`).

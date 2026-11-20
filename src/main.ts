@@ -20,7 +20,16 @@ const game = createGame(byId("game"), bus, {
   levelLabel: strings.levelLabel,
   levelWord: strings.levelWord,
 });
-bus.on("playRequested", () => game.start());
+bus.on("playRequested", () => {
+  // `?fase=N` only in `pnpm dev` (plan 1g, decision 3); the published game opens level 1.
+  if (import.meta.env.DEV) {
+    void import("./game/debug/level-from-url.ts").then(({ levelFromUrl }) =>
+      game.start(levelFromUrl(window.location.search)),
+    );
+  } else {
+    game.start();
+  }
+});
 const ui = byId("ui");
 mountTitleScreen(ui, bus);
 mountPauseScreen(ui, bus);

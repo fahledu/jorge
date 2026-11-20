@@ -110,19 +110,19 @@ que terminou").
 ### 1g. Gerador de fases e validador
 - **Escopo:** PRNG, curva, sorteio e encaixe de trechos, ativação de spawns por
   densidade e tier, validador de alcançabilidade, `levels:build` e `levels:check` no CI;
-  6 trechos provisórios (dificuldades 1, 3, 5, 7, 9, 10) para exercitar o gerador; as 100
-  fases geradas.
-- **ADRs:** 0005.
+  10 trechos provisórios para exercitar o gerador (8 do meio com dificuldades 1, 1, 3, 4,
+  6, 7, 9 e 10, mais um de início e um de chegada); as 100 fases geradas.
+- **ADRs:** 0013.
 - **Depende de:** 1f.
-- **Pronto quando:** os casos-limite do ADR 0005 passam; as 100 fases existem, passam no
+- **Pronto quando:** os casos-limite do ADR 0013 passam; as 100 fases existem, passam no
   validador e abrem no jogo; `levels:check` falha com um arquivo gerado editado à mão.
 
 ### 1h. Biblioteca de trechos e ajuste da curva
 - **Escopo:** pelo menos 30 trechos escritos por um agente no formato do Tiled, 3 ou
   mais por dificuldade de 1 a 10, com terreno variado (grama, terra, neve, areia) e
   spawns; ajuste dos números da curva pelo teste à mão (mudança de número vai para o
-  ADR 0005).
-- **ADRs:** 0005, 0008, 0012.
+  ADR 0013).
+- **ADRs:** 0013, 0008, 0012.
 - **Depende de:** 1g.
 - **Pronto quando:** fases 1, 10, 50 e 100 jogadas à mão até a bandeira pelo roteiro;
   as 100 fases regeneradas passam no `levels:check`.
@@ -173,7 +173,7 @@ que terminou").
 Não é prioridade e não tem data: o usuário escolhe se e quando ela entra, ao fechar a
 Fase 1. Nada desta fase é regra (sem ADR Aceito) e a Fase 1 continua 100% estática,
 sem backend. Do lado do MVP, o preparo é só o que custa pouco: recordes por fase com
-pontos, tempo, inimigos, moedas e o `contentHash` da fase (ADR 0005, ADR 0007), e o
+pontos, tempo, inimigos, moedas e o `contentHash` da fase (ADR 0013, ADR 0007), e o
 domínio determinístico (ADR 0004).
 
 - **Objetivo:** quem quiser compara a própria pontuação com a de outros jogadores e
@@ -227,3 +227,5 @@ sai desta lista, e o descartado também.
 - Quique mais alto ao pisar no inimigo segurando o pulo (fora de escopo do plano 1e)
 - Pontos flutuando no lugar do inimigo derrotado ou da moeda (fora de escopo do plano 1f)
 - Tempo-alvo do bônus visível durante a fase (fora de escopo do plano 1f)
+- Morros do fundo acompanhando a altura do chão ao longo da fase (fora de escopo do plano 1g)
+- Fases além das 100, geradas sem fim (fora de escopo do plano 1g)

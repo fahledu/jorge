@@ -1,6 +1,6 @@
 import { type LevelInfo, readLevelInfo } from "../domain/level.ts";
 
-// One lazy chunk per level, with a hash in its name (ADR 0005): the title page downloads none.
+// One lazy chunk per level, with a hash in its name (ADR 0013): the title page downloads none.
 const files = import.meta.glob<{ default: unknown }>("/levels/generated/*.json");
 
 export interface LevelData {

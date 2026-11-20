@@ -1,15 +1,18 @@
-// Normalizes a manual level into the file the game loads (ADR 0005, ADR 0012): Tiled JSON
-// with the tileset embedded and the level properties, in a canonical serialization so the
+// Normalizes a manual or generated level into the file the game loads (ADR 0012, ADR 0013):
+// Tiled JSON with the tileset embedded and the level properties, in a canonical serialization so the
 // same source always gives the same bytes and the same `contentHash`.
 import * as z from "zod/mini";
-import { type EnemyType, type PatrolRange, patrolRange } from "./enemies.ts";
-import { type Cell, cellOf, cellsWith } from "./geometry.ts";
+import { LEVEL_COUNT, tierOf } from "./curve.ts";
+import { type EnemyType, isSolid, type PatrolRange, patrolRange } from "./enemies.ts";
+import { type Cell, cellOf, cellsWith, pitColumns } from "./geometry.ts";
 import { gidOf, SPIKE_TILES } from "./tiles.ts";
 import { MAP_HEIGHT, TILE_SIZE, type TmjMap } from "./tmj.ts";
 import type { TilesetInfo } from "./tsx.ts";
 
-export const LEVEL_COUNT = 100;
-const LEVELS_PER_TIER = 10;
+export { LEVEL_COUNT, tierOf };
+/** Goes up with every change of the generator that changes its output (ADR 0013). */
+export const GENERATOR_VERSION = 1;
+
 /** Tiles per second the target time assumes (ADR 0006). */
 const TILES_PER_SECOND = 4;
 const HASH_LENGTH = 16;
@@ -17,26 +20,31 @@ const HASH_LENGTH = 16;
 const FORMAT_VERSION = "1.10";
 const TILED_VERSION = "1.10.2";
 
-/** Difficulty block of a level: 1 for levels 1–10, 10 for 91–100 (ADR 0005). */
-export function tierOf(levelNumber: number): number {
-  return Math.ceil(levelNumber / LEVELS_PER_TIER);
-}
-
 /** Target time of ADR 0006: one second per 4 tiles, rounded up. */
 export function targetTimeSeconds(widthInTiles: number): number {
   return Math.ceil(widthInTiles / TILES_PER_SECOND);
 }
 
-export interface ManualLevelInput {
-  levelNumber: number;
-  /** Path of the .tmj relative to `levels/`, with forward slashes. */
-  source: string;
+interface LevelFileInput {
   map: TmjMap;
   tileset: TilesetInfo;
   /** Path of the sheet relative to the output folder, so Tiled opens the output too. */
   imagePath: string;
   /** SHA-256 as lowercase hex; injected, the domain does not import node:crypto. */
   sha256: (text: string) => string;
+}
+
+export interface ManualLevelInput extends LevelFileInput {
+  levelNumber: number;
+  /** Path of the .tmj relative to `levels/`, with forward slashes. */
+  source: string;
+}
+
+export interface GeneratedLevelInput extends LevelFileInput {
+  levelNumber: number;
+  seed: number;
+  /** Names of the chunks, in level order (ADR 0013). */
+  chunks: readonly string[];
 }
 
 export interface BuiltLevel {
@@ -74,12 +82,44 @@ function property(name: string, value: string | number): Json {
   return { name, type: typeof value === "number" ? "int" : "string", value };
 }
 
-/** Builds `levels/generated/NNN.json` from a validated manual level. */
-export function buildManualLevel(input: ManualLevelInput): BuiltLevel {
-  const { levelNumber, map, tileset } = input;
+function checkLevelNumber(levelNumber: number): void {
   if (!Number.isInteger(levelNumber) || levelNumber < 1 || levelNumber > LEVEL_COUNT) {
     throw new Error(`level number must be 1 to ${LEVEL_COUNT}, got ${levelNumber}`);
   }
+}
+
+/** Builds `levels/generated/NNN.json` from a validated manual level. */
+export function buildManualLevel(input: ManualLevelInput): BuiltLevel {
+  const { levelNumber, source, map } = input;
+  checkLevelNumber(levelNumber);
+  return buildLevelFile(input, [
+    ["levelNumber", levelNumber],
+    ["source", source],
+    ["targetTimeSeconds", targetTimeSeconds(map.width)],
+    ["tier", tierOf(levelNumber)],
+  ]);
+}
+
+/** Builds `levels/generated/NNN.json` from the map the generator assembled (ADR 0013). */
+export function buildGeneratedLevel(input: GeneratedLevelInput): BuiltLevel {
+  const { levelNumber, seed, chunks, map } = input;
+  checkLevelNumber(levelNumber);
+  return buildLevelFile(input, [
+    ["chunks", chunks.join(",")],
+    ["generatorVersion", GENERATOR_VERSION],
+    ["levelNumber", levelNumber],
+    ["seed", seed],
+    ["targetTimeSeconds", targetTimeSeconds(map.width)],
+    ["tier", tierOf(levelNumber)],
+  ]);
+}
+
+/** The canonical file: `contentHash` is the hash of the same file without it. */
+function buildLevelFile(
+  input: LevelFileInput,
+  properties: readonly [string, string | number][],
+): BuiltLevel {
+  const { map, tileset } = input;
 
   const spawns = [...map.spawns].sort((a, b) => a.id - b.id);
   const objects: Json[] = spawns.map((spawn) => {
@@ -106,13 +146,10 @@ export function buildManualLevel(input: ManualLevelInput): BuiltLevel {
   });
 
   // Properties in name order (ADR 0012); contentHash is added after hashing the rest.
-  const levelProperties = (hash?: string): Json[] => [
-    ...(hash === undefined ? [] : [property("contentHash", hash)]),
-    property("levelNumber", levelNumber),
-    property("source", input.source),
-    property("targetTimeSeconds", targetTimeSeconds(map.width)),
-    property("tier", tierOf(levelNumber)),
-  ];
+  const levelProperties = (hash?: string): Json[] =>
+    [...properties, ...(hash === undefined ? [] : [["contentHash", hash] as const])]
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(([name, value]) => property(name, value));
 
   const levelFile = (hash?: string): Json => ({
     compressionlevel: -1,
@@ -194,6 +231,10 @@ export interface LevelInfo {
   spikes: Cell[];
   /** Walkers and flyers with their patrol range (plan 1e). */
   enemies: LevelEnemy[];
+  /** Columns with no terrain tile at all: a pit open to the bottom. */
+  pits: number[];
+  /** First solid row below the start, where the background hills sit (plan 1g, decision 4). */
+  groundRow: number;
 }
 
 export interface LevelEnemy {
@@ -227,6 +268,19 @@ function isEnemyType(type: string): type is EnemyType {
   return type === "walker" || type === "flyer";
 }
 
+/** First solid row at or below a point; the last row if the column has none. */
+function groundBelow(
+  terrain: readonly number[],
+  width: number,
+  point: { x: number; y: number },
+): number {
+  const { col, row } = cellOf(point);
+  for (let r = Math.max(0, row); r < MAP_HEIGHT; r += 1) {
+    if (isSolid(terrain[r * width + col] ?? 0)) return r;
+  }
+  return MAP_HEIGHT - 1;
+}
+
 /**
  * What the game needs from a generated level, checked at the border: the file comes from
  * the build, but a stale tab may load a file from another version (ADR 0011). Only the shape
@@ -247,12 +301,13 @@ export function readLevelInfo(json: unknown): LevelInfo {
     if (!found) throw new Error(`level ${levelNumber} has no "${type}" spawn`);
     return { x: found.x, y: found.y };
   };
+  const start = point("start");
   return {
     levelNumber,
     widthInTiles: width,
     targetTimeSeconds: target,
     tilesetName: tilesets[0].name,
-    start: point("start"),
+    start,
     flag: point("flag"),
     items: objects.flatMap((o) =>
       isItemType(o.type) ? [{ id: o.id, type: o.type, x: o.x, y: o.y }] : [],
@@ -264,5 +319,7 @@ export function readLevelInfo(json: unknown): LevelInfo {
       const range = patrolRange(o.type, cell, terrain, width);
       return [{ id: o.id, type: o.type, x: o.x, y: o.y, row: cell.row, range }];
     }),
+    pits: pitColumns(terrain, width),
+    groundRow: groundBelow(terrain, width, start),
   };
 }

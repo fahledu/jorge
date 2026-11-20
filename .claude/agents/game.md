@@ -28,7 +28,7 @@ Visual e textos da interface: `docs/DESIGN.md` e o tema do código para onde ele
 | Decisões e fonte única | 0001 |
 | Stack e versões | 0003 |
 | Camadas: `domain` puro, entrada abstraída, eventos entre `game` e `ui` | 0004 |
-| Fases: trechos, gerador, curva, validador, `contentHash` | 0005 |
+| Fases: trechos, gerador, curva, validador, `contentHash` | 0013 |
 | Regras do jogo e pontuação | 0006 |
 | Save e recordes locais | 0007 |
 | Assets de terceiros e licença | 0008 |
@@ -43,7 +43,7 @@ Visual e textos da interface: `docs/DESIGN.md` e o tema do código para onde ele
   Tempo e aleatoriedade entram por parâmetro; nada de `Math.random` ou `Date.now` no
   domínio.
 - Mudou física, gerador ou trecho: rode `levels:build` e `levels:check`; as fases
-  geradas vão no mesmo commit (ADR 0005).
+  geradas vão no mesmo commit (ADR 0013).
 - Teclado e toque alimentam o mesmo estado de comandos; a cena não sabe a origem.
 - Menus em HTML sobre o canvas: rótulos, navegação por teclado, foco visível, contraste
   AA; cor nunca é a única informação (ADR 0009).

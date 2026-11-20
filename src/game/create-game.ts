@@ -4,7 +4,7 @@ import { GRAVITY, PHYSICS_FPS } from "../domain/physics.ts";
 import { computeScale, GAME_HEIGHT, GAME_WIDTH } from "../domain/scale.ts";
 import type { EventBus } from "./events.ts";
 import { attachKeyboard } from "./input/keyboard.ts";
-import { loadLevel } from "./levels.ts";
+import { type LevelData, loadLevel } from "./levels.ts";
 import { LevelScene, type LevelSceneData } from "./scenes/level-scene.ts";
 
 function token(name: string): string {
@@ -27,8 +27,8 @@ export interface GameTexts {
 }
 
 export interface GameHandle {
-  /** Loads level 1 (on demand, ADR 0005), starts it and shows the canvas. */
-  start(): void;
+  /** Loads a level (on demand, ADR 0013), starts it and shows the canvas; once. */
+  start(levelNumber?: number): void;
 }
 
 /**
@@ -101,6 +101,33 @@ export function createGame(parent: HTMLElement, bus: EventBus, texts: GameTexts)
     const scene = game.scene.getScene("level");
     return scene instanceof LevelScene ? scene : null;
   };
+
+  const sceneData = (level: LevelData): LevelSceneData => ({
+    level,
+    bus,
+    controls,
+    attempt: 1,
+    // From the system until the saved setting of items 1i and 1j (plan 1d).
+    reduceEffects: () => reducedMotion.matches,
+    colors: {
+      hud: tokenColor("--color-bg"),
+      text: tokenColor("--color-text"),
+      halo: tokenColor("--color-primary"),
+    },
+    levelWord: texts.levelWord,
+    font: token("--font-ui"),
+  });
+
+  /** Loads a level and starts its scene in place of the one running, if any. */
+  const open = async (levelNumber: number): Promise<void> => {
+    const level = await loadLevel(levelNumber);
+    parent.hidden = false;
+    game.canvas.setAttribute("aria-label", texts.levelLabel(level.info.levelNumber));
+    const running = levelScene();
+    if (running) running.scene.start("level", sceneData(level));
+    else game.scene.add("level", LevelScene, true, sceneData(level));
+    fit();
+  };
   // Focus lost: the browser sends no keyup for keys still held, so pausing also lets go.
   const pauseOnFocusLoss = (): void => levelScene()?.pauseLevel();
   window.addEventListener("blur", pauseOnFocusLoss);
@@ -114,42 +141,21 @@ export function createGame(parent: HTMLElement, bus: EventBus, texts: GameTexts)
     );
   }
   if (import.meta.env.MODE === "e2e") {
-    void import("./test-hooks.ts").then(({ installTestHooks }) => installTestHooks(levelScene));
+    void import("./test-hooks.ts").then(({ installTestHooks }) =>
+      installTestHooks(levelScene, open),
+    );
   }
 
   let started = false;
   return {
-    start() {
+    start(levelNumber = 1) {
       if (started) return;
       started = true;
-      loadLevel(1).then(
-        (level) => {
-          parent.hidden = false;
-          game.canvas.setAttribute("aria-label", texts.levelLabel(level.info.levelNumber));
-          const data: LevelSceneData = {
-            level,
-            bus,
-            controls,
-            attempt: 1,
-            // From the system until the saved setting of items 1i and 1j (plan 1d).
-            reduceEffects: () => reducedMotion.matches,
-            colors: {
-              hud: tokenColor("--color-bg"),
-              text: tokenColor("--color-text"),
-              halo: tokenColor("--color-primary"),
-            },
-            levelWord: texts.levelWord,
-            font: token("--font-ui"),
-          };
-          game.scene.add("level", LevelScene, true, data);
-          fit();
-        },
-        (error: unknown) => {
-          // No error screen until item 1j: the failure goes to the console (plan 1b).
-          // biome-ignore lint/suspicious/noConsole: the only report of a failed load in 1b
-          console.error("could not load level 1", error);
-        },
-      );
+      open(levelNumber).catch((error: unknown) => {
+        // No error screen until item 1j: the failure goes to the console (plan 1b).
+        // biome-ignore lint/suspicious/noConsole: the only report of a failed load until 1j
+        console.error(`could not load level ${levelNumber}`, error);
+      });
     },
   };
 }

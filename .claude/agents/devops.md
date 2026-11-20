@@ -21,7 +21,7 @@ Você é o engenheiro de DevOps do projeto. Sua área: Dockerfiles, Compose, `.g
 | Agentes, áreas e segredos | 0002 |
 | Stack e versões | 0003 |
 | Estrutura do código | 0004 |
-| Fases geradas e checagem no CI | 0005 |
+| Fases geradas e checagem no CI | 0013 |
 | Testes e qualidade | 0010 |
 | Hospedagem, CI e deploy (VM da plataforma fahledu, sem backup: não há dado no servidor) | 0011 |
 

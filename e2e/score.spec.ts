@@ -3,8 +3,12 @@ import { expect, type Page, test } from "@playwright/test";
 import type { Cell } from "../src/domain/geometry.ts";
 import { watchProblems } from "./problems.ts";
 
-/** Column of the first gap of level 1 (levels/manual/001.tmj); level() has no terrain yet. */
-const GAP_COL = 38;
+/** First column open to the bottom of the level (plan 1g, decision 6). */
+async function firstPit(page: Page): Promise<number> {
+  const pit = await page.evaluate(() => window.__jorgeTest?.level()?.pits[0]);
+  if (pit === undefined) throw new Error("the level has no pit");
+  return pit;
+}
 
 let problems: string[] = [];
 let COIN: Cell;
@@ -164,7 +168,7 @@ test("falling shows 'Ops! Você caiu.' until the level restarts from zero", asyn
   const notice = page.getByRole("status");
   await expect(notice.locator(".toast")).toBeAttached();
   await expect(notice).toHaveText("");
-  await place(page, { col: GAP_COL, row: 10 });
+  await place(page, { col: await firstPit(page), row: 10 });
   await expect(notice).toContainText("Ops! Você caiu.");
   await expect(notice).toContainText("Recomeçando a fase 1…");
   await expect(page.getByRole("button", { name: "Jogar de novo" })).toBeHidden();

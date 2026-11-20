@@ -86,3 +86,49 @@ export function cellsWith(data: readonly number[], width: number, gids: readonly
   });
   return cells;
 }
+
+/** Columns with no tile at all in a terrain layer: a pit open to the bottom of the map. */
+export function pitColumns(data: readonly number[], width: number): number[] {
+  const pits: number[] = [];
+  const height = data.length / width;
+  for (let col = 0; col < width; col += 1) {
+    let empty = true;
+    for (let row = 0; row < height && empty; row += 1) empty = data[row * width + col] === 0;
+    if (empty) pits.push(col);
+  }
+  return pits;
+}
+
+/**
+ * Still things (spikes, items, springs) bucketed by the columns their box covers, so a step
+ * looks only at the columns the player touches. `query` fills `out` and allocates nothing.
+ */
+export class ColumnIndex<T> {
+  private readonly columns: T[][];
+
+  constructor(items: readonly T[], boxOf: (item: T) => Rect, widthInTiles: number) {
+    this.columns = Array.from({ length: widthInTiles }, () => []);
+    for (const item of items) {
+      const box = boxOf(item);
+      const first = Math.max(0, Math.floor(box.left / TILE_SIZE));
+      const last = Math.min(widthInTiles - 1, Math.floor((box.right - 1) / TILE_SIZE));
+      for (let col = first; col <= last; col += 1) this.columns[col]?.push(item);
+    }
+  }
+
+  /** Items whose columns meet [left, right) px, each once, in `out` (emptied first). */
+  query(left: number, right: number, out: T[]): T[] {
+    out.length = 0;
+    const first = Math.max(0, Math.floor(left / TILE_SIZE));
+    const last = Math.min(this.columns.length - 1, Math.floor((right - 1) / TILE_SIZE));
+    for (let col = first; col <= last; col += 1) {
+      const bucket = this.columns[col];
+      if (bucket === undefined) continue;
+      for (let i = 0; i < bucket.length; i += 1) {
+        const item = bucket[i] as T; // i < bucket.length
+        if (!out.includes(item)) out.push(item);
+      }
+    }
+    return out;
+  }
+}

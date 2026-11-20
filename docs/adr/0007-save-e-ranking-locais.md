@@ -34,7 +34,7 @@ possível para quem joga.
       timeMs: number,
       enemiesDefeated: number,
       coinsCollected: number,
-      levelHash: string,                // `contentHash` da fase jogada (ADR 0005)
+      levelHash: string,                // `contentHash` da fase jogada (ADR 0013)
     },
     bestTimeMs: number,                 // menor tempo de uma tentativa concluída
     completions: number,                // vezes que a fase foi concluída (≥ 1)

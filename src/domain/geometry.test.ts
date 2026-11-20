@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  ColumnIndex,
   cellOf,
   cellsWith,
   feetIn,
@@ -7,6 +8,7 @@ import {
   itemBox,
   knockbackDirection,
   overlaps,
+  pitColumns,
   spikeBox,
   springBox,
 } from "./geometry.ts";
@@ -64,5 +66,41 @@ describe("geometry", () => {
 
   it("finds the cells holding some GIDs", () => {
     expect(cellsWith([0, 0, 0, 22, 69, 0], 3, [69])).toEqual([{ col: 1, row: 1 }]);
+  });
+});
+
+describe("pitColumns", () => {
+  it("lists the columns with no terrain tile at all", () => {
+    // 3 columns × 2 rows: column 1 is empty, column 2 has a tile only on top.
+    expect(pitColumns([5, 0, 5, 5, 0, 0], 3)).toEqual([1]);
+  });
+});
+
+describe("ColumnIndex", () => {
+  const box = (col: number, cols = 1) => ({
+    left: col * 18,
+    top: 0,
+    right: (col + cols) * 18,
+    bottom: 18,
+  });
+  const items = [
+    { name: "a", box: box(0) },
+    { name: "b", box: box(2, 2) },
+    { name: "c", box: box(5) },
+  ];
+  const index = new ColumnIndex(items, (item) => item.box, 8);
+
+  it("returns only the items of the columns asked, once each", () => {
+    expect(index.query(36, 72, []).map((i) => i.name)).toEqual(["b"]);
+    expect(index.query(0, 18 * 6, []).map((i) => i.name)).toEqual(["a", "b", "c"]);
+    expect(index.query(18, 36, [])).toEqual([]);
+  });
+
+  it("refills the same array and clamps to the map", () => {
+    const out: (typeof items)[number][] = [];
+    expect(index.query(-50, 10, out)).toBe(out);
+    expect(out.map((i) => i.name)).toEqual(["a"]);
+    index.query(90, 1000, out);
+    expect(out.map((i) => i.name)).toEqual(["c"]);
   });
 });

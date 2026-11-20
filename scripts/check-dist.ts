@@ -1,9 +1,10 @@
-// The production build must not carry the E2E shortcut nor the fps meter (ADR 0010).
+// The production build must not carry the E2E shortcut, the fps meter nor the level picked
+// by the address (ADR 0010, plan 1g).
 // Runs at the end of `pnpm build`.
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
-const FORBIDDEN = ["__jorgeTest", "fps-meter"];
+const FORBIDDEN = ["__jorgeTest", "fps-meter", "level-from-url"];
 const dist = path.resolve(import.meta.dirname, "..", "dist");
 
 const found: string[] = [];

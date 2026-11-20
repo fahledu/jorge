@@ -31,7 +31,7 @@ no item de fundação (1a do roadmap) e anotadas na tabela como versão inicial.
   | Testes | vitest, @vitest/coverage-v8, @playwright/test, @axe-core/playwright | 4 / 4 / 1 / 4 | 4.1.12 / 4.1.12 / 1.65.0 / 4.14.0 |
   | Lint e formato | @biomejs/biome (não formata `*.md` nem `*.yml`) | 2 | 2.6.6 |
   | Servidor estático | Caddy (imagem `-alpine`, por digest) | 2 | a mesma da plataforma (`fahledu/0003`) |
-  | Edição de trechos (ferramenta do autor, fora do `package.json`) | Tiled | 1.10 ou mais nova | formato `.tmj` (ADR 0005) |
+  | Edição de trechos (ferramenta do autor, fora do `package.json`) | Tiled | 1.10 ou mais nova | formato `.tmj` (ADR 0013) |
 
 - **Menus e HUD fora do canvas sem framework:** TypeScript e DOM puros, CSS à mão com os
   tokens do `docs/DESIGN.md` (ADR 0009). Sem React, sem biblioteca de UI.
@@ -48,7 +48,7 @@ no item de fundação (1a do roadmap) e anotadas na tabela como versão inicial.
     `esbuild`, que vem com o Vite); incluir outro pede aprovação do usuário e motivo no
     commit.
   - Pacote novo: nome exato, autor, idade e downloads conferidos; preferir Web API a
-    pacote pequeno (ex.: PRNG e hash de semente são código próprio, ADR 0005). Fora da
+    pacote pequeno (ex.: PRNG e hash de semente são código próprio, ADR 0013). Fora da
     tabela, só com motivo no plano.
 - **Atualização:** revisão mensal (`pnpm outdated`), patch e minor em lote com testes
   verdes; `pnpm audit --prod --audit-level high` no CI falha o build.

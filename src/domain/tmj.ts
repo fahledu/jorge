@@ -1,5 +1,5 @@
 // Reader of chunks and manual levels written in the subset of the Tiled JSON accepted by
-// ADR 0012 (layers and properties from ADR 0005). Every problem comes back with the file,
+// ADR 0012 (layers and properties from ADR 0013). Every problem comes back with the file,
 // the layer and the cell, so a wrong file written by an agent is caught by the build.
 import * as z from "zod/mini";
 import { gidOf, SPIKE_TILES } from "./tiles.ts";
@@ -7,9 +7,9 @@ import type { TilesetInfo } from "./tsx.ts";
 
 const SPIKE_GIDS: readonly number[] = SPIKE_TILES.map(gidOf);
 
-/** Tile size in game pixels (ADR 0005). */
+/** Tile size in game pixels (ADR 0013). */
 export const TILE_SIZE = 18;
-/** Every chunk and level is 15 tiles high (ADR 0005). */
+/** Every chunk and level is 15 tiles high (ADR 0013). */
 export const MAP_HEIGHT = 15;
 /** The only tileset a map may use, relative to the repository root (ADR 0012). */
 export const TILESET_PATH = "assets/kenney/Tiled/tileset-tiles.tsx";
@@ -33,7 +33,10 @@ const FLIP_BITS = 0xf0000000;
 /** Caps the list so a broken file does not print thousands of lines. */
 const MAX_ERRORS = 50;
 
-export type MapKind = "manual" | "chunk";
+/** `generated`: assembled by the generator, never read from a file (ADR 0013). */
+export type MapKind = "manual" | "chunk" | "generated";
+/** Kinds read from a .tmj file. */
+export type FileKind = Exclude<MapKind, "generated">;
 
 export interface TmjError {
   file: string;
@@ -67,14 +70,14 @@ export interface TmjMap {
   terrain: number[];
   decor: number[];
   spawns: Spawn[];
-  /** Chunk properties of ADR 0005; `null` for a manual level, which has none. */
+  /** Chunk properties of ADR 0013; `null` for a manual level, which has none. */
   chunk: ChunkProperties | null;
 }
 
 export type TmjResult = { ok: true; map: TmjMap } | { ok: false; errors: TmjError[] };
 
 export interface ParseOptions {
-  kind: MapKind;
+  kind: FileKind;
   /** Path of the file relative to the repository root, with forward slashes. */
   file: string;
   tileset: TilesetInfo;
@@ -194,7 +197,7 @@ function intProperty(
   return value;
 }
 
-/** Validates a parsed .tmj (JSON already decoded) against ADR 0005 and ADR 0012. */
+/** Validates a parsed .tmj (JSON already decoded) against ADR 0013 and ADR 0012. */
 export function parseTmj(json: unknown, opts: ParseOptions): TmjResult {
   const { file, kind, tileset } = opts;
   const errors: TmjError[] = [];
@@ -282,7 +285,7 @@ export function parseTmj(json: unknown, opts: ParseOptions): TmjResult {
     }
   });
 
-  // Map properties: none on a manual level; the ADR 0005 set on a chunk.
+  // Map properties: none on a manual level; the ADR 0013 set on a chunk.
   const props = new Map<string, Property>();
   for (const prop of map.properties ?? []) {
     if (props.has(prop.name)) fail(`map property "${prop.name}" appears twice`);

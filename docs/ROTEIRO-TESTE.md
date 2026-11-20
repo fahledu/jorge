@@ -15,6 +15,9 @@ ou na mensagem do commit.
 5. Contador de fps: aparece só no `pnpm dev`, no canto superior direito do jogo, com o fps
    atual e a média dos últimos 30 s (atualiza 2 vezes por segundo). No build de produção
    ele não existe.
+6. Outra fase: só no `pnpm dev`, `http://localhost:5190/?fase=N` (1 a 100) abre a fase N ao
+   clicar em "Jogar"; valor inválido abre a 1. No jogo publicado abre sempre a 1 até a
+   seleção de fases (1i e 1j).
 
 ## O que fazer
 
@@ -48,6 +51,10 @@ Para cada fase **1, 10, 50 e 100**, no notebook (teclado) e no celular (toque):
   o coração, o andador e o voador. Anote se a fase ainda parece curta.
 - Imagem: pixels nítidos (sem borrão), sem faixas pretas fora do lugar, sem tremor da
   câmera com "Reduzir efeitos" ligado.
+- Fases geradas (2 a 100, com `?fase=N`): os morros do fundo ficam logo acima do chão do
+  início; nas junções dos trechos, grama e terra têm a borda certa (sem degrau cortado no
+  meio do tile); a bandeira é alcançável só pulando. Anote a fase e a coluna de qualquer
+  junção estranha (`pnpm levels:preview levels/generated/NNN.json` mostra a fase em PNG).
 - **Fps:** com o contador, fique 30 s numa parte movimentada da fase e anote a média.
   Meta: 60. Mínimo aceitável: 55 de média. Abaixo disso, o item não fecha.
 

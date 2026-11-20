@@ -36,7 +36,7 @@ export interface PatrolState {
 
 const SPIKE_GIDS: readonly number[] = SPIKE_TILES.map(gidOf);
 
-function isSpike(gid: number): boolean {
+export function isSpike(gid: number): boolean {
   return SPIKE_GIDS.includes(gid);
 }
 

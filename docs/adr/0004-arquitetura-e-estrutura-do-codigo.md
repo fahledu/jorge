@@ -22,7 +22,7 @@ por unidade. Misturar as duas deixa as regras presas a cenas do Phaser.
   levels/
     chunks/        # trechos do Tiled (.tmj), fonte editada à mão
     manual/        # fases inteiras feitas à mão (NNN.tmj)
-    generated/     # 100 fases geradas (saída do build de fases, versionada; ADR 0005)
+    generated/     # 100 fases geradas (saída do build de fases, versionada; ADR 0013)
   scripts/         # build e checagem de fases (rodam o domain com Node)
   assets/kenney/   # cópia dos arquivos usados do pack (ADR 0008)
   e2e/             # Playwright
@@ -37,7 +37,7 @@ por unidade. Misturar as duas deixa as regras presas a cenas do Phaser.
   `ui` nem o contrário: falam por um barramento de eventos tipado definido em
   `src/game/events.ts` (ex.: `levelCompleted`, `pauseRequested`).
 - **Constantes de física** (gravidade, velocidade, impulso do pulo) moram em
-  `src/domain/physics.ts`: a engine as usa e o validador de fases (ADR 0005) deriva
+  `src/domain/physics.ts`: a engine as usa e o validador de fases (ADR 0013) deriva
   delas o alcance do pulo. Mudar uma constante roda de novo a checagem das 100 fases.
 - **Entrada abstraída:** teclado e toque produzem o mesmo estado de comandos
   (`left`, `right`, `jump`, `pause`) lido pela cena; a cena não sabe a origem
@@ -51,7 +51,7 @@ por unidade. Misturar as duas deixa as regras presas a cenas do Phaser.
 ## Casos-limite
 - `import Phaser from 'phaser'` em `src/domain/score.ts` → lint e teste de importações
   falham.
-- `Math.random()` no gerador → teste de importações falha (determinismo, ADR 0005).
+- `Math.random()` no gerador → teste de importações falha (determinismo, ADR 0013).
 - Cena chamando `localStorage` direto → fora da regra; passa pelo `storage`.
 
 ## Descartado

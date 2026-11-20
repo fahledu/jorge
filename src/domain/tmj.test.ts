@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { chunkProps, type FixtureSpawn, makeMap, TILESET } from "./fixtures/maps.ts";
-import { formatTmjError, type MapKind, parseTmj, type TmjError } from "./tmj.ts";
+import { type FileKind, formatTmjError, parseTmj, type TmjError } from "./tmj.ts";
 
 const MANUAL_FILE = "levels/manual/001.tmj";
 const CHUNK_FILE = "levels/chunks/flat.tmj";
 
-function parse(json: unknown, kind: MapKind = "manual") {
+function parse(json: unknown, kind: FileKind = "manual") {
   return parseTmj(json, {
     kind,
     file: kind === "manual" ? MANUAL_FILE : CHUNK_FILE,
@@ -13,13 +13,13 @@ function parse(json: unknown, kind: MapKind = "manual") {
   });
 }
 
-function errorsOf(json: unknown, kind: MapKind = "manual"): TmjError[] {
+function errorsOf(json: unknown, kind: FileKind = "manual"): TmjError[] {
   const result = parse(json, kind);
   if (result.ok) throw new Error("expected the map to be rejected");
   return result.errors;
 }
 
-const messages = (json: unknown, kind: MapKind = "manual"): string =>
+const messages = (json: unknown, kind: FileKind = "manual"): string =>
   errorsOf(json, kind)
     .map((e) => e.message)
     .join("\n");
