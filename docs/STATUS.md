@@ -66,8 +66,11 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
   5 px à direita do mockup (lá encostavam no dígito anterior); `createGame` recebe
   `GameTexts`; uma tolerância só (`EPSILON_MS` em `physics.ts`). O E2E confere o recomeço
   do zero contra o tempo real decorrido (sob carga o Phaser recupera vários passos num
-  quadro). Falta a rodada à mão (resumo contra a partida, anúncio do aviso no leitor de
-  tela).
+  quadro). Corrigido depois da revisão: o resumo e a linha da pausa são a descrição da
+  janela (`aria-describedby`; o foco vai ao botão e pulava a tabela), o aviso fica sempre
+  na página e só troca o texto (antes aparecia já preenchido e podia não ser anunciado), a
+  tabela tem `<th scope="row">`. Falta a rodada à mão (resumo contra a partida, anúncio
+  do aviso no leitor de tela).
 
 ## Limites aceitos
 
@@ -83,6 +86,8 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
   CC0, sem problema de licença.
 - Escala inteira em pixel CSS: em tela com zoom de 125% ou 150% o pixel pode ficar
   irregular; se incomodar no teste à mão, vira mudança no ADR 0009.
+- O HUD do canvas não é lido pelo leitor de tela (o canvas tem um rótulo fixo); tempo e
+  pontos aparecem na pausa, corações e moedas não. Rever no 1j, com os menus.
 - Os hooks precisam do Node instalado; sem ele, as restrições não são aplicadas.
 - A confirmação de ações externas e o bloqueio de chaves olham o texto do comando: um
   comando embrulhado (`bash -c`, script) escapa, e fazer isso é contornar hook (ADR 0002).

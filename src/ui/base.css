@@ -195,8 +195,14 @@ body {
   font: 400 var(--text-small) var(--font-ui);
 }
 
+.breakdown th,
 .breakdown td {
   padding: var(--space-1) var(--space-2);
+}
+
+.breakdown th {
+  font-weight: inherit;
+  text-align: left;
 }
 
 .breakdown td:last-child {
@@ -208,6 +214,7 @@ body {
   background: var(--color-surface-2);
 }
 
+.breakdown tr.total th,
 .breakdown tr.total td {
   border-top: var(--border-w) solid var(--color-border);
   font: 800 var(--text-heading) var(--font-ui);
@@ -239,8 +246,9 @@ body {
   box-shadow: var(--shadow-panel);
 }
 
-.toast[hidden] {
-  display: none;
+/* Idle: empty and transparent, but kept in the accessibility tree (see attempt-lost-toast.ts). */
+.toast-idle {
+  opacity: 0;
 }
 
 .toast-title {

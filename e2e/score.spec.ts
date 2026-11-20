@@ -92,6 +92,7 @@ test("the pause shows level, time and points, and the clock does not run in it",
   const dialog = page.getByRole("dialog", { name: "Pausa" });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByText(/^Fase 1 · \d+:\d\d,\d · 10 pontos$/)).toBeVisible();
+  await expect(dialog).toHaveAccessibleDescription(/^Fase 1 · \d+:\d\d,\d · 10 pontos$/);
   const paused = (await state(page))?.elapsedMs ?? 0;
   await page.waitForTimeout(1500); // the time that must not count
   expect((await state(page))?.elapsedMs).toBe(paused);
@@ -124,7 +125,7 @@ test("the summary adds up the attempt; 'play again' starts the HUD from zero", a
   await expect(rows).toHaveCount(6);
   const format = (n: number) => new Intl.NumberFormat("pt-BR").format(n);
   const cells = await rows.evaluateAll((trs) =>
-    trs.map((tr) => [...tr.querySelectorAll("td")].map((td) => td.textContent ?? "")),
+    trs.map((tr) => [...tr.querySelectorAll("th, td")].map((cell) => cell.textContent ?? "")),
   );
   expect(cells).toEqual([
     ["Andadores derrotados (1 × 100)", "100"],
@@ -141,6 +142,12 @@ test("the summary adds up the attempt; 'play again' starts the HUD from zero", a
 
   const again = page.getByRole("button", { name: "Jogar de novo" });
   await expect(again).toBeFocused();
+  // The focus skips the table, so the summary is read as the dialog's description.
+  const described = page.getByRole("dialog", { name: "Fase 1 concluída!" });
+  await expect(described).toHaveAccessibleDescription(/Andadores derrotados \(1 × 100\) 100/);
+  await expect(described).toHaveAccessibleDescription(
+    new RegExp(`Total ${format(summary.total)}$`),
+  );
   const axe = await new AxeBuilder({ page }).analyze();
   expect(axe.violations).toEqual([]);
 
@@ -153,8 +160,11 @@ test("the summary adds up the attempt; 'play again' starts the HUD from zero", a
 test("falling shows 'Ops! Você caiu.' until the level restarts from zero", async ({ page }) => {
   await takeCoin(page);
   const since = await now(page);
-  await place(page, { col: GAP_COL, row: 10 });
+  // The notice is in the page, empty, before the loss: only its text changes (announced).
   const notice = page.getByRole("status");
+  await expect(notice.locator(".toast")).toBeAttached();
+  await expect(notice).toHaveText("");
+  await place(page, { col: GAP_COL, row: 10 });
   await expect(notice).toContainText("Ops! Você caiu.");
   await expect(notice).toContainText("Recomeçando a fase 1…");
   await expect(page.getByRole("button", { name: "Jogar de novo" })).toBeHidden();

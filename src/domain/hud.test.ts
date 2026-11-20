@@ -11,6 +11,15 @@ describe("clockParts", () => {
     expect(clockParts(0)).toEqual({ minutes: 0, seconds: 0, tenths: 0 });
   });
 
+  it("turns the minute and the second only when they are reached", () => {
+    expect(clockParts(59_999)).toEqual({ minutes: 0, seconds: 59, tenths: 9 });
+    expect(clockParts(60_000)).toEqual({ minutes: 1, seconds: 0, tenths: 0 });
+    expect(clockParts(999.9)).toEqual({ minutes: 0, seconds: 0, tenths: 9 });
+    expect(clockParts(1000)).toEqual({ minutes: 0, seconds: 1, tenths: 0 });
+    expect(clockText(59_999)).toBe("0:59");
+    expect(clockText(60_000)).toBe("1:00");
+  });
+
   it("1200 steps of 1000/60 ms are 20.0 s", () => {
     let elapsed = 0;
     for (let i = 0; i < 1200; i += 1) elapsed += STEP_MS;

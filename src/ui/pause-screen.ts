@@ -10,6 +10,9 @@ export function mountPauseScreen(root: HTMLElement, bus: EventBus): void {
   const { veil, panel, title } = dialog(root, "pause-title");
   title.textContent = strings.pause;
   const level = element("p", "muted small subtitle");
+  level.id = "pause-line";
+  // The focus goes to "Continuar": level, time and points are read as the description.
+  panel.setAttribute("aria-describedby", level.id);
   const resume = button(strings.resume);
   panel.append(level, resume);
 

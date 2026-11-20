@@ -1,42 +1,14 @@
-import {
-  COMPLETION_BASE,
-  COMPLETION_PER_LEVEL,
-  POINTS,
-  type ScoreSummary,
-} from "../domain/score.ts";
 import type { EventBus } from "../game/events.ts";
 import { button, dialog, element } from "./dom.ts";
-import { formatSeconds, formatPoints as n } from "./format.ts";
+import { formatPoints } from "./format.ts";
 import { strings } from "./strings.ts";
-
-/** The five lines and the total of the summary (plan 1f, decision 5), always all of them. */
-function summaryRows(summary: ScoreSummary): [string, number][] {
-  const { walkers, flyers, coins, completion, timeBonus } = summary;
-  return [
-    [strings.walkersLine(n(walkers.count), n(POINTS.walker)), walkers.points],
-    [strings.flyersLine(n(flyers.count), n(POINTS.flyer)), flyers.points],
-    [strings.coinsLine(n(coins.count), n(POINTS.coin)), coins.points],
-    [
-      strings.completionLine(
-        n(COMPLETION_BASE),
-        n(COMPLETION_PER_LEVEL),
-        n(completion.levelNumber),
-      ),
-      completion.points,
-    ],
-    [
-      strings.timeBonusLine(
-        formatSeconds(timeBonus.usedSeconds),
-        formatSeconds(timeBonus.targetSeconds),
-      ),
-      timeBonus.points,
-    ],
-  ];
-}
+import { summaryRows } from "./summary-rows.ts";
 
 function row(label: string, points: number, className = ""): HTMLTableRowElement {
   const tr = element("tr", className);
-  tr.append(element("td", "", label), element("td", "", n(points)));
+  const header = element("th", "", label);
+  header.scope = "row";
+  tr.append(header, element("td", "", formatPoints(points)));
   return tr;
 }
 
@@ -47,6 +19,10 @@ export function mountLevelCompleteScreen(root: HTMLElement, bus: EventBus): void
   const table = element("table", "breakdown");
   table.setAttribute("aria-label", strings.scoreTable);
   const body = element("tbody", "");
+  // The focus goes to the button: the rows are the dialog's description, read with the
+  // title. It points at the tbody, since the table's aria-label would replace the rows.
+  body.id = "complete-summary";
+  panel.setAttribute("aria-describedby", body.id);
   table.append(body);
   const again = button(strings.playAgain);
   panel.append(table, again);
@@ -57,9 +33,10 @@ export function mountLevelCompleteScreen(root: HTMLElement, bus: EventBus): void
   });
   bus.on("levelCompleted", ({ levelNumber, summary }) => {
     title.textContent = strings.levelCompleted(levelNumber);
+    const rows = summaryRows(summary);
+    const last = rows.length - 1;
     body.replaceChildren(
-      ...summaryRows(summary).map(([label, points]) => row(label, points)),
-      row(strings.total, summary.total, "total"),
+      ...rows.map(([label, points], i) => row(label, points, i === last ? "total" : "")),
     );
     veil.hidden = false;
     again.focus();

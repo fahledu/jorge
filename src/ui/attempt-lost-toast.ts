@@ -7,11 +7,12 @@ import { strings } from "./strings.ts";
  * shown while the death effect runs, until the new attempt starts (plan 1f, decision 6).
  */
 export function mountAttemptLostToast(root: HTMLElement, bus: EventBus): void {
-  // The live region stays in the page; only its content changes, so it is announced.
+  // The live region and the notice stay in the accessibility tree all the time; only the
+  // text changes, which screen readers announce. A node that appears already filled
+  // (`hidden` removed with the text) is often not announced, so idle only fades it out.
   const status = element("div", "toast-region");
   status.setAttribute("role", "status");
-  const toast = element("div", "toast");
-  toast.hidden = true;
+  const toast = element("div", "toast toast-idle");
   const title = element("p", "toast-title");
   const line = element("p", "muted small toast-line");
   toast.append(title, line);
@@ -21,10 +22,10 @@ export function mountAttemptLostToast(root: HTMLElement, bus: EventBus): void {
   bus.on("attemptLost", ({ levelNumber, reason }) => {
     title.textContent = reason === "fell" ? strings.fell : strings.outOfHearts;
     line.textContent = strings.restarting(levelNumber);
-    toast.hidden = false;
+    toast.classList.remove("toast-idle");
   });
   bus.on("attemptStarted", () => {
-    toast.hidden = true;
+    toast.classList.add("toast-idle");
     title.textContent = "";
     line.textContent = "";
   });

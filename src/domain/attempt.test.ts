@@ -121,6 +121,15 @@ describe("order within a step (plan 1d, decision 10)", () => {
     expect(result.outcome).toBe("completed");
     expect(result.state.hearts).toBe(3);
     expect(result.hurt).toBe(false);
+    expect(result.state.events).toEqual([{ type: "completed" }]);
+  });
+
+  it("the flag and an enemy touch with 1 heart → completed, not dead", () => {
+    const one = { ...initialAttempt(), hearts: 1 };
+    const result = step(one, { flag: true, enemies: [{ id: 4, type: "flyer", stomp: false }] });
+    expect(result.outcome).toBe("completed");
+    expect(result.state.hearts).toBe(1);
+    expect(result.state.events).toEqual([{ type: "completed" }]);
   });
 });
 
