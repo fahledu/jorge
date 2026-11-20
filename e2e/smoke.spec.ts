@@ -19,7 +19,7 @@ test("title opens, passes axe and starts the scene without errors or CSP violati
   else await page.keyboard.press("Enter");
 
   await expect(play).toBeHidden();
-  const canvas = page.getByRole("img", { name: "Fase 1" });
+  const canvas = page.getByRole("application", { name: "Fase 1" });
   await expect(canvas).toBeVisible();
   expect(problems).toEqual([]);
 });
@@ -30,7 +30,7 @@ test("scales the canvas by whole numbers at 1280×720", async ({ page }, testInf
   await page.goto("/");
   await page.getByRole("button", { name: "Jogar" }).click();
 
-  const canvas = page.getByRole("img", { name: "Fase 1" });
+  const canvas = page.getByRole("application", { name: "Fase 1" });
   await expect(canvas).toHaveCSS("width", "960px");
   await expect(canvas).toHaveCSS("height", "540px");
   await expect(canvas).toHaveCSS("image-rendering", "pixelated");

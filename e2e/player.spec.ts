@@ -146,6 +146,7 @@ test("Esc pauses and resumes without pausing again; P and the button do too", as
 
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
+  await expect(page.getByRole("application", { name: "Fase 1" })).toBeFocused();
   await frames(page, 10);
   expect((await state(page))?.status).toBe("playing");
   await expect(dialog).toBeHidden();

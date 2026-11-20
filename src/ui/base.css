@@ -43,6 +43,11 @@ body {
   image-rendering: pixelated;
 }
 
+/* Focused only while playing, so screen readers pass the keys; nothing in it to point at. */
+.game canvas:focus {
+  outline: none;
+}
+
 .ui {
   position: absolute;
   inset: 0;

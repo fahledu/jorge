@@ -24,8 +24,10 @@ test("downloads level 1 only on Play and shows it labelled, without errors", asy
   expect(levelRequests).toEqual([]);
 
   await play(page, testInfo.project.use.hasTouch === true);
-  const canvas = page.getByRole("img", { name: "Fase 1" });
+  const canvas = page.getByRole("application", { name: "Fase 1" });
   await expect(canvas).toBeVisible();
+  // Focused while playing, so a screen reader in browse mode lets the keys through.
+  await expect(canvas).toBeFocused();
   expect(levelRequests).toHaveLength(1);
 
   // Let the camera move for a moment, then look for runtime errors.
@@ -38,7 +40,7 @@ test("level 1 fills 1920×1080 at scale 4", async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/");
   await play(page, false);
-  const canvas = page.getByRole("img", { name: "Fase 1" });
+  const canvas = page.getByRole("application", { name: "Fase 1" });
   await expect(canvas).toHaveCSS("width", "1920px");
   await expect(canvas).toHaveCSS("height", "1080px");
 });
@@ -48,7 +50,7 @@ test("level 1 fits 693×390 in an 844×390 phone", async ({ page }, testInfo) =>
   await page.setViewportSize({ width: 844, height: 390 });
   await page.goto("/");
   await play(page, true);
-  const canvas = page.getByRole("img", { name: "Fase 1" });
+  const canvas = page.getByRole("application", { name: "Fase 1" });
   await expect(canvas).toHaveCSS("width", "693px");
   await expect(canvas).toHaveCSS("height", "390px");
   await expect(canvas).toHaveCSS("image-rendering", "pixelated");

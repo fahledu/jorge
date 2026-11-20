@@ -4,10 +4,9 @@ Ponto de retomada: onde o projeto está, o que vem a seguir e o que está em abe
 Atualize ao fim de cada item do roadmap (`docs/ROADMAP.md`) ou quando uma questão for
 resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico está no git.
 
-- **Última atualização:** 2026-11-19
+- **Última atualização:** 2026-11-20
 - **Fase:** Fase 1 (MVP).
-- **Próximo passo:** rodada à mão do 1f na fase 1 (`docs/ROTEIRO-TESTE.md`: o resumo bate
-  com a partida); depois, item **1g**: `/feature 1g`.
+- **Próximo passo:** item **1g**: `/feature 1g`.
 
 ## Feito
 
@@ -69,8 +68,10 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
   quadro). Corrigido depois da revisão: o resumo e a linha da pausa são a descrição da
   janela (`aria-describedby`; o foco vai ao botão e pulava a tabela), o aviso fica sempre
   na página e só troca o texto (antes aparecia já preenchido e podia não ser anunciado), a
-  tabela tem `<th scope="row">`. Falta a rodada à mão (resumo contra a partida, anúncio
-  do aviso no leitor de tela).
+  tabela tem `<th scope="row">`. Rodada à mão na fase 1 (todos os inimigos e moedas, 0:35:
+  1.070 pontos, confere; avisos e pausa conferidos). Com o Narrador ligado as setas não
+  chegavam ao jogo; o canvas passou a `role="application"` e recebe o foco quando o jogo
+  assume o teclado; conferido com o Narrador.
 
 ## Limites aceitos
 

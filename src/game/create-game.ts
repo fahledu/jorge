@@ -71,8 +71,11 @@ export function createGame(parent: HTMLElement, bus: EventBus, texts: GameTexts)
   };
 
   game.events.once(Phaser.Core.Events.READY, () => {
-    game.canvas.setAttribute("role", "img");
+    // "application": a screen reader (Narrador, NVDA) leaves its browse mode when the canvas
+    // has the focus and lets the keys reach the game; with "img" it kept the arrows.
+    game.canvas.setAttribute("role", "application");
     game.canvas.setAttribute("aria-label", texts.label);
+    game.canvas.tabIndex = -1;
     fit();
   });
   new ResizeObserver(fit).observe(parent);
@@ -83,7 +86,15 @@ export function createGame(parent: HTMLElement, bus: EventBus, texts: GameTexts)
   const keyboard = attachKeyboard(commands);
   const controls = {
     commands,
-    setEnabled: (enabled: boolean) => (enabled ? keyboard.enable() : keyboard.disable()),
+    setEnabled: (enabled: boolean): void => {
+      if (!enabled) {
+        keyboard.disable();
+        return;
+      }
+      keyboard.enable();
+      // The level owns the keyboard: the focus goes to the game (see the role above).
+      game.canvas.focus({ preventScroll: true });
+    },
   };
 
   const levelScene = (): LevelScene | null => {
