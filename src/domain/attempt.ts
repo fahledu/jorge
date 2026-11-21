@@ -1,6 +1,6 @@
 // One attempt at a level: hearts, invulnerability, coins, defeated enemies and how it ends
 // (ADR 0006), with the list of scoring events and the time it took (plan 1f).
-import type { EnemyType } from "./enemies.ts";
+import { type EnemyType, isStompable, type ScoredEnemy, scoredAs } from "./enemies.ts";
 import { EPSILON_MS } from "./physics.ts";
 
 export const MAX_HEARTS = 3;
@@ -14,12 +14,12 @@ const STILL_ALPHA = 0.5;
 /** What is worth points, in the order it happened (ADR 0006); `score.ts` reads it. */
 export type AttemptEvent =
   | { type: "coin" }
-  | { type: "enemyDefeated"; enemy: EnemyType }
+  | { type: "enemyDefeated"; enemy: ScoredEnemy }
   | { type: "completed" };
 
 const COIN_EVENT: AttemptEvent = { type: "coin" };
 const COMPLETED_EVENT: AttemptEvent = { type: "completed" };
-const DEFEAT_EVENTS: Record<EnemyType, AttemptEvent> = {
+const DEFEAT_EVENTS: Record<ScoredEnemy, AttemptEvent> = {
   walker: { type: "enemyDefeated", enemy: "walker" },
   flyer: { type: "enemyDefeated", enemy: "flyer" },
 };
@@ -127,14 +127,16 @@ export function stepAttempt(
   let enemyHit = false;
   for (const enemy of contacts.enemies) {
     if (defeatedIds.includes(enemy.id)) continue;
-    if (!enemy.stomp) {
+    // A spiky hurts even when the player falls on it (ADR 0014).
+    const scored = scoredAs(enemy.type);
+    if (!enemy.stomp || !isStompable(enemy.type) || scored === null) {
       enemyHit = true;
       continue;
     }
     defeatedIds = [...defeatedIds, enemy.id];
     defeated.push(enemy);
-    stepEvents.push(DEFEAT_EVENTS[enemy.type]);
-    if (enemy.type === "walker") defeatedWalkers += 1;
+    stepEvents.push(DEFEAT_EVENTS[scored]);
+    if (scored === "walker") defeatedWalkers += 1;
     else defeatedFlyers += 1;
   }
   if (contacts.flag) stepEvents.push(COMPLETED_EVENT);

@@ -4,6 +4,7 @@ import { type AttemptEvent, isInvulnerable } from "../domain/attempt.ts";
 import { type Cell, cellOf } from "../domain/geometry.ts";
 import { type HudFields, hudFields } from "../domain/hud.ts";
 import { runningPoints, type ScoreSummary } from "../domain/score.ts";
+import { lookOf, type Theme } from "../domain/theme.ts";
 import type {
   EnemySnapshot,
   LevelScene,
@@ -21,6 +22,10 @@ export interface LevelCells {
   /** Columns open to the bottom of the map (plan 1g, decision 6). */
   pits: number[];
   width: number;
+  /** The level's theme and the theme it is drawn with (ADR 0015; plan 1g2, decision 8). */
+  theme: Theme;
+  look: Theme;
+  secret: Cell | null;
 }
 
 export interface JorgeTestHooks {
@@ -130,6 +135,9 @@ export function installTestHooks(
         })),
         pits: info.pits,
         width: info.widthInTiles,
+        theme: info.theme,
+        look: lookOf(info.theme),
+        secret: info.secret ? cellOf(info.secret) : null,
       };
     },
     placePlayer: (col, row) => playing()?.placePlayer(col, row),

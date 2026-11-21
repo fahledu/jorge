@@ -101,7 +101,8 @@ pnpm audit --prod --audit-level high         # auditoria de dependências
 2. Cada agente altera só a sua área; `.claude/` só com o usuário; segredo real só em `.env.local`, que agente só toca com a sua confirmação; chave privada e `.ssh` ninguém lê; push, ssh, disparo de workflow e publicação pedem confirmação; contornar hook por shell é proibido. (ADR 0002)
 3. Versões fixadas e conferidas; versão nova só depois de 7 dias publicada; script de instalação só de pacote aprovado. (ADR 0003)
 4. Um pacote, `src/{domain,game,ui,storage}`; `domain` puro (sem Phaser, DOM, `Math.random` nem `Date.now`); `game` e `ui` falam por eventos; constantes de física no `domain`. (ADR 0004)
-5. Fases geradas no build a partir de trechos do Tiled com semente fixa, versionadas no git; curva por grupos de 10; validador de alcance faz o build falhar; trechos com rota alta; cada fase tem `contentHash`; tema por bloco de tiers. (ADR 0013, ADR 0015)
+5. Fases geradas no build a partir de trechos do Tiled com semente fixa, versionadas no git; curva por grupos de 10; validador de alcance faz o build falhar; trechos com rota alta; cada fase tem `contentHash`; um tema a cada 10 fases (10 temas, só terreno, decoração e fundo
+   mudam). (ADR 0013, ADR 0015)
 6. 3 corações; modo livre com tentativas ilimitadas, pontos só com a fase concluída e total = soma do melhor de cada fase; modo desafio com partida desde a fase 1, vidas, vida extra que não volta e game over. (ADR 0014)
 7. Um save por navegador, sem dado pessoal (exceto o apelido do top 10, só local); recordes pessoais; schema versionado com migração; mescla entre abas; save corrompido preservado. (ADR 0007)
 8. Só assets CC0 ou OFL; só os arquivos usados, em `assets/kenney/`, conferidos por hash; crédito à Kenney. (ADR 0008)
@@ -157,7 +158,7 @@ preciso ver o valor, não peça.
 - Não releia o que já está no contexto (este arquivo é carregado sozinho) nem um arquivo
   logo depois de editá-lo.
 - Procure antes de ler (busca por texto ou nome); em arquivo grande, leia só o trecho
-  que interessa. Não leia `levels/generated/` nem o pack em `kenney_pixel-platformer/`.
+  que interessa. Não leia `levels/generated/` nem os packs em `packs/`.
 - Rode testes pelo script de saída resumida (seção Comandos). Não leia lockfiles, build
   nem código gerado.
 - Antes de usar API de framework ou biblioteca, consulte a doc e os tipos da versão

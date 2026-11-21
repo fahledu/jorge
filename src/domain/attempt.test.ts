@@ -305,3 +305,43 @@ describe("events and time (plan 1f)", () => {
     expect(step(initialAttempt(), spike).state.elapsedMs).toBe(STEP_MS);
   });
 });
+
+describe("spiky and vertical flyer (ADR 0014)", () => {
+  const hit = (type: "spiky" | "flyer-v" | "walker", stomp: boolean, id = 1) => ({
+    id,
+    type,
+    stomp,
+  });
+
+  it("falling on a spiky hurts, with no stomp, and it is not defeated", () => {
+    const result = step(initialAttempt(), { enemies: [hit("spiky", true)] });
+    expect(result.state.hearts).toBe(2);
+    expect(result.hurt).toBe(true);
+    expect(result.stomped).toBe(false);
+    expect(result.defeated).toEqual([]);
+    expect(result.state.defeated).toEqual([]);
+  });
+
+  it("an invulnerable player goes through a spiky", () => {
+    const hurt = step(initialAttempt(), { enemies: [hit("spiky", false)] }).state;
+    const result = step(hurt, { enemies: [hit("spiky", true)] });
+    expect(result.hurt).toBe(false);
+    expect(result.state.hearts).toBe(2);
+  });
+
+  it("a stomped vertical flyer is defeated and scores as a flyer", () => {
+    const result = step(initialAttempt(), { enemies: [hit("flyer-v", true)] });
+    expect(result.stomped).toBe(true);
+    expect(result.state.events).toEqual([{ type: "enemyDefeated", enemy: "flyer" }]);
+    expect(result.state.defeatedFlyers).toBe(1);
+  });
+
+  it("a walker stomped and a spiky touched in the same step: defeated, hurt", () => {
+    const result = step(initialAttempt(), {
+      enemies: [hit("walker", true, 1), hit("spiky", true, 2)],
+    });
+    expect(result.defeated.map((e) => e.id)).toEqual([1]);
+    expect(result.hurt).toBe(true);
+    expect(result.state.hearts).toBe(2);
+  });
+});

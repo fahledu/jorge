@@ -2,7 +2,7 @@
 // ADR 0012 (layers and properties from ADR 0013). Every problem comes back with the file,
 // the layer and the cell, so a wrong file written by an agent is caught by the build.
 import * as z from "zod/mini";
-import { gidOf, SPIKE_TILES } from "./tiles.ts";
+import { BASE_PALETTE, gidOf, SPIKE_TILES } from "./tiles.ts";
 import type { TilesetInfo } from "./tsx.ts";
 
 const SPIKE_GIDS: readonly number[] = SPIKE_TILES.map(gidOf);
@@ -14,15 +14,29 @@ export const MAP_HEIGHT = 15;
 /** The only tileset a map may use, relative to the repository root (ADR 0012). */
 export const TILESET_PATH = "assets/kenney/Tiled/tileset-tiles.tsx";
 
-export const SPAWN_TYPES = ["start", "flag", "walker", "flyer", "coin", "heart", "spring"] as const;
+export const SPAWN_TYPES = [
+  "start",
+  "flag",
+  "walker",
+  "flyer",
+  "spiky",
+  "flyer-v",
+  "coin",
+  "heart",
+  "spring",
+  "secret",
+] as const;
 export type SpawnType = (typeof SPAWN_TYPES)[number];
 /** Spawns that may carry `minTier` (ADR 0012). */
 const TIERED_SPAWNS: ReadonlySet<SpawnType> = new Set([
   "walker",
   "flyer",
+  "spiky",
+  "flyer-v",
   "coin",
   "heart",
   "spring",
+  "secret",
 ]);
 
 const CHUNK_WIDTH = { min: 16, max: 48 };
@@ -252,6 +266,9 @@ export function parseTmj(json: unknown, opts: ParseOptions): TmjResult {
       else if ((gid & FLIP_BITS) !== 0) fail(`GID ${gid} has flip or rotation bits`, where);
       else if (gid > tileset.tilecount) {
         fail(`GID ${gid} is outside the tileset (1 to ${tileset.tilecount})`, where);
+      } else if (gid !== 0 && !BASE_PALETTE.has(gid)) {
+        // Chunks and manual levels draw with the meadow; the build swaps the tiles (ADR 0015).
+        fail(`GID ${gid} is outside the base palette (levels/README.md)`, where);
       }
     });
   }
@@ -400,9 +417,11 @@ function readSpawns(
 }
 
 /**
- * An enemy may not start inside the terrain (solid or spike), and a walker needs solid
- * ground below, or it would float still (ADR 0012).
+ * An enemy may not start inside the terrain (solid or spike), and a walker or a spiky needs
+ * solid ground below, or it would float still (ADR 0012).
  */
+const ENEMY_SPAWNS: ReadonlySet<SpawnType> = new Set(["walker", "flyer", "spiky", "flyer-v"]);
+
 function checkEnemySpawns(
   spawns: readonly Spawn[],
   terrain: readonly number[],
@@ -413,12 +432,15 @@ function checkEnemySpawns(
     row < MAP_HEIGHT ? (terrain[row * width + col] ?? 0) : 0;
   const isSolid = (gid: number): boolean => gid !== 0 && !SPIKE_GIDS.includes(gid);
   for (const spawn of spawns) {
-    if (spawn.type !== "walker" && spawn.type !== "flyer") continue;
+    if (!ENEMY_SPAWNS.has(spawn.type)) continue;
     const where = { layer: "spawns", col: spawn.col, row: spawn.row };
     if (gidAt(spawn.col, spawn.row) !== 0) {
       fail(`"${spawn.type}" spawn ${spawn.id} is inside the terrain`, where);
-    } else if (spawn.type === "walker" && !isSolid(gidAt(spawn.col, spawn.row + 1))) {
-      fail(`"walker" spawn ${spawn.id} has no solid ground below`, where);
+    } else if (
+      (spawn.type === "walker" || spawn.type === "spiky") &&
+      !isSolid(gidAt(spawn.col, spawn.row + 1))
+    ) {
+      fail(`"${spawn.type}" spawn ${spawn.id} has no solid ground below`, where);
     }
   }
 }

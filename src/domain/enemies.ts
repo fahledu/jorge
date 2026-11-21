@@ -1,36 +1,64 @@
-// Enemies (plan 1e): a walker goes back and forth on the ground, a flyer in the air. They
-// have no physics body: each one moves along a patrol range worked out once from the
-// terrain, and contact with the player is decided here, by boxes (ADR 0004).
+// Enemies (plans 1e and 1g2): a walker and a spiky go back and forth on the ground, a flyer
+// in the air, a vertical flyer up and down. They have no physics body: each one moves along a
+// patrol range worked out once from the terrain, and contact with the player is decided
+// here, by boxes (ADR 0004).
 import { overlaps, type Rect } from "./geometry.ts";
 import { gidOf, SPIKE_TILES } from "./tiles.ts";
 import { MAP_HEIGHT, TILE_SIZE } from "./tmj.ts";
 
-export type EnemyType = "walker" | "flyer";
+export type EnemyType = "walker" | "flyer" | "spiky" | "flyer-v";
+/** What an enemy counts as in the score (ADR 0014). */
+export type ScoredEnemy = "walker" | "flyer";
 
 /** Px/s; the player runs at 110. */
 export const WALKER_SPEED = 40;
 export const FLYER_SPEED = 50;
-/** Cells a flyer goes to each side of its spawn. */
+export const SPIKY_SPEED = 40;
+export const FLYER_V_SPEED = 50;
+/** Cells a flyer goes to each side of its spawn (up and down for the vertical one). */
 export const FLYER_RANGE_CELLS = 3;
 /** Touch boxes, px: centred on `x`; a walker stands on the bottom of its cell. */
 export const ENEMY_BOX = {
   walker: { width: 16, height: 14 },
   flyer: { width: 16, height: 12 },
+  spiky: { width: 16, height: 14 },
+  "flyer-v": { width: 16, height: 12 },
 } as const satisfies Record<EnemyType, { width: number; height: number }>;
 
 export const ENEMY_SPEED: Record<EnemyType, number> = {
   walker: WALKER_SPEED,
   flyer: FLYER_SPEED,
+  spiky: SPIKY_SPEED,
+  "flyer-v": FLYER_V_SPEED,
 };
 
-/** Range of the box centre, px. */
+/** The axis an enemy patrols along: only the vertical flyer goes up and down. */
+export function patrolAxis(type: EnemyType): "x" | "y" {
+  return type === "flyer-v" ? "y" : "x";
+}
+
+/** A spiky cannot be stomped: it hurts from above too (ADR 0014). */
+export function isStompable(type: EnemyType): boolean {
+  return type !== "spiky";
+}
+
+/** What a defeated enemy scores as; `null` if it is not worth points (the spiky). */
+export function scoredAs(type: EnemyType): ScoredEnemy | null {
+  if (type === "walker") return "walker";
+  if (type === "flyer" || type === "flyer-v") return "flyer";
+  return null;
+}
+
+/** Range of the box centre on the patrol axis, px. */
 export interface PatrolRange {
   min: number;
   max: number;
 }
 
 export interface PatrolState {
-  x: number;
+  /** Box centre on the patrol axis of the type, px. */
+  pos: number;
+  /** -1 goes left or up, 1 goes right or down. */
   direction: -1 | 1;
 }
 
@@ -52,10 +80,11 @@ function gidAt(terrain: readonly number[], width: number, col: number, row: numb
 }
 
 /**
- * Where an enemy spawned in `cell` may go (plan 1e, decision 1). A walker extends to each
- * side while the next cell is free (neither solid nor a spike) and has solid ground below;
- * a flyer up to `FLYER_RANGE_CELLS` cells, stopping before a solid cell or a spike. The edge
- * of the map is a wall.
+ * Where an enemy spawned in `cell` may go (plan 1e, decision 1). A walker or a spiky extends
+ * to each side while the next cell is free (neither solid nor a spike) and has solid ground
+ * below; a flyer up to `FLYER_RANGE_CELLS` cells, stopping before a solid cell or a spike; a
+ * vertical flyer the same, up and down, stopping also at the top of the map and at the last
+ * row. The edge of the map is a wall.
  */
 export function patrolRange(
   type: EnemyType,
@@ -63,23 +92,35 @@ export function patrolRange(
   terrain: readonly number[],
   width: number,
 ): PatrolRange {
-  const free = (col: number): boolean => {
-    if (col < 0 || col >= width) return false;
-    if (gidAt(terrain, width, col, cell.row) !== 0) return false;
-    return type === "flyer" || isSolid(gidAt(terrain, width, col, cell.row + 1));
+  const vertical = type === "flyer-v";
+  const free = (index: number): boolean => {
+    if (vertical) {
+      if (index < 0 || index >= MAP_HEIGHT) return false;
+      return gidAt(terrain, width, cell.col, index) === 0;
+    }
+    if (index < 0 || index >= width) return false;
+    if (gidAt(terrain, width, index, cell.row) !== 0) return false;
+    return type === "flyer" || isSolid(gidAt(terrain, width, index, cell.row + 1));
   };
-  const limit = type === "flyer" ? FLYER_RANGE_CELLS : Number.POSITIVE_INFINITY;
-  let first = cell.col;
-  while (cell.col - first < limit && free(first - 1)) first -= 1;
-  let last = cell.col;
-  while (last - cell.col < limit && free(last + 1)) last += 1;
-  const half = ENEMY_BOX[type].width / 2;
+  const origin = vertical ? cell.row : cell.col;
+  const limit = type === "flyer" || vertical ? FLYER_RANGE_CELLS : Number.POSITIVE_INFINITY;
+  let first = origin;
+  while (origin - first < limit && free(first - 1)) first -= 1;
+  let last = origin;
+  while (last - origin < limit && free(last + 1)) last += 1;
+  // A vertical flyer with no room to go up or down stays at the centre of its cell.
+  if (vertical && first === last) {
+    const centre = (first + 0.5) * TILE_SIZE;
+    return { min: centre, max: centre };
+  }
+  const { width: boxWidth, height } = ENEMY_BOX[type];
+  const half = (vertical ? height : boxWidth) / 2;
   return { min: first * TILE_SIZE + half, max: (last + 1) * TILE_SIZE - half };
 }
 
-/** Both kinds start going left, towards the player coming in (plan 1e, decision 1). */
-export function initialPatrol(range: PatrolRange, x: number): PatrolState {
-  return { x: Math.min(range.max, Math.max(range.min, x)), direction: -1 };
+/** Every type starts going left, or up, towards the player coming in (plan 1e, decision 1). */
+export function initialPatrol(range: PatrolRange, pos: number): PatrolState {
+  return { pos: Math.min(range.max, Math.max(range.min, pos)), direction: -1 };
 }
 
 /** Moves along the range; passing an end reflects the excess and turns around. */
@@ -89,8 +130,8 @@ export function stepPatrol(
   speed: number,
   dtMs: number,
 ): PatrolState {
-  if (range.max <= range.min) return { x: range.min, direction: state.direction };
-  let x = state.x + (state.direction * speed * dtMs) / 1000;
+  if (range.max <= range.min) return { pos: range.min, direction: state.direction };
+  let x = state.pos + (state.direction * speed * dtMs) / 1000;
   let direction = state.direction;
   if (x < range.min) {
     x = Math.min(range.max, 2 * range.min - x);
@@ -99,13 +140,21 @@ export function stepPatrol(
     x = Math.max(range.min, 2 * range.max - x);
     direction = -1;
   }
-  return { x, direction };
+  return { pos: x, direction };
 }
 
-/** Touch box at centre `x` in `row` (plan 1e, decision 2). */
-export function enemyBox(type: EnemyType, x: number, row: number): Rect {
+/**
+ * Touch box at centre `x` (plan 1e, decision 2). `y` is the spawn point for the types that
+ * stay in their row (a walker and a spiky stand on the bottom of the cell, a flyer is
+ * centred in it) and the centre of the box for the vertical flyer.
+ */
+export function enemyBox(type: EnemyType, x: number, y: number): Rect {
   const { width, height } = ENEMY_BOX[type];
-  const bottom = type === "walker" ? (row + 1) * TILE_SIZE : (row + 0.5) * TILE_SIZE + height / 2;
+  const row = Math.floor(y / TILE_SIZE);
+  let bottom: number;
+  if (type === "walker" || type === "spiky") bottom = (row + 1) * TILE_SIZE;
+  else if (type === "flyer") bottom = (row + 0.5) * TILE_SIZE + height / 2;
+  else bottom = y + height / 2;
   return { left: x - width / 2, top: bottom - height, right: x + width / 2, bottom };
 }
 

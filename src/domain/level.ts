@@ -5,13 +5,14 @@ import * as z from "zod/mini";
 import { LEVEL_COUNT, tierOf } from "./curve.ts";
 import { type EnemyType, isSolid, type PatrolRange, patrolRange } from "./enemies.ts";
 import { type Cell, cellOf, cellsWith, pitColumns } from "./geometry.ts";
+import { type Theme, themeOf } from "./theme.ts";
 import { gidOf, SPIKE_TILES } from "./tiles.ts";
 import { MAP_HEIGHT, TILE_SIZE, type TmjMap } from "./tmj.ts";
 import type { TilesetInfo } from "./tsx.ts";
 
 export { LEVEL_COUNT, tierOf };
 /** Goes up with every change of the generator that changes its output (ADR 0013). */
-export const GENERATOR_VERSION = 1;
+export const GENERATOR_VERSION = 2;
 
 /** Tiles per second the target time assumes (ADR 0006). */
 const TILES_PER_SECOND = 4;
@@ -223,13 +224,17 @@ export interface LevelInfo {
   targetTimeSeconds: number;
   /** Name of the embedded tileset, which the scene binds to the sheet's texture. */
   tilesetName: string;
+  /** Real theme id of the block (ADR 0015); the look may be borrowed (`lookOf`). */
+  theme: Theme;
   start: { x: number; y: number };
   flag: { x: number; y: number };
   /** Coins, hearts and springs, at their spawn points (centre of a cell). */
   items: LevelItem[];
   /** Cells of the terrain holding a spike. */
   spikes: Cell[];
-  /** Walkers and flyers with their patrol range (plan 1e). */
+  /** The secret item of the challenge mode, if the level has one (ADR 0014). */
+  secret: { id: number; x: number; y: number } | null;
+  /** Enemies with their patrol range (plans 1e and 1g2). */
   enemies: LevelEnemy[];
   /** Columns with no terrain tile at all: a pit open to the bottom. */
   pits: number[];
@@ -265,7 +270,7 @@ function isItemType(type: string): type is ItemType {
 }
 
 function isEnemyType(type: string): type is EnemyType {
-  return type === "walker" || type === "flyer";
+  return type === "walker" || type === "flyer" || type === "spiky" || type === "flyer-v";
 }
 
 /** First solid row at or below a point; the last row if the column has none. */
@@ -294,6 +299,9 @@ export function readLevelInfo(json: unknown): LevelInfo {
   if (typeof levelNumber !== "number") throw new Error("level file has no levelNumber");
   const target = properties.find((p) => p.name === "targetTimeSeconds")?.value;
   if (typeof target !== "number") throw new Error("level file has no targetTimeSeconds");
+  const tier = properties.find((p) => p.name === "tier")?.value;
+  if (typeof tier !== "number") throw new Error("level file has no tier");
+  const secret = layers.find((l) => l.name === "spawns")?.objects?.find((o) => o.type === "secret");
   const objects = layers.find((l) => l.name === "spawns")?.objects ?? [];
   const terrain = layers.find((l) => l.name === "terrain")?.data ?? [];
   const point = (type: string): { x: number; y: number } => {
@@ -307,6 +315,8 @@ export function readLevelInfo(json: unknown): LevelInfo {
     widthInTiles: width,
     targetTimeSeconds: target,
     tilesetName: tilesets[0].name,
+    theme: themeOf(tier),
+    secret: secret ? { id: secret.id, x: secret.x, y: secret.y } : null,
     start,
     flag: point("flag"),
     items: objects.flatMap((o) =>

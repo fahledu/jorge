@@ -12,7 +12,7 @@
       "!docs",
       "!assets",
       "!levels/generated",
-      "!kenney_pixel-platformer",
+      "!packs",
       "!scripts/*.mjs",
       "!pnpm-lock.yaml",
       "!**/dist",

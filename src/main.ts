@@ -21,10 +21,12 @@ const game = createGame(byId("game"), bus, {
   levelWord: strings.levelWord,
 });
 bus.on("playRequested", () => {
-  // `?fase=N` only in `pnpm dev` (plan 1g, decision 3); the published game opens level 1.
+  // `?fase=N` and `?segredo=1` only in `pnpm dev` (plans 1g and 1g2); the published game opens level 1.
   if (import.meta.env.DEV) {
-    void import("./game/debug/level-from-url.ts").then(({ levelFromUrl }) =>
-      game.start(levelFromUrl(window.location.search)),
+    void import("./game/debug/level-from-url.ts").then(({ levelFromUrl, secretFromUrl }) =>
+      game.start(levelFromUrl(window.location.search), {
+        showSecret: secretFromUrl(window.location.search),
+      }),
     );
   } else {
     game.start();

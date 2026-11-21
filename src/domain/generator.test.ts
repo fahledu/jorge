@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { fullLibrary, makeChunk } from "./fixtures/chunks.ts";
 import { type GeneratedLevel, generateLevel, type LibraryChunk } from "./generator.ts";
+import { THEME_TILES } from "./tiles.ts";
 import type { SpawnType } from "./tmj.ts";
 
 const START = makeChunk("start", { tags: ["start"] });
@@ -202,5 +203,120 @@ describe("generateLevel", () => {
     pillar.map.terrain[12 * 16 + 14] = 0; // empty left of the last column at row 12
     const { map } = ok(generateLevel(2, library));
     expect(map.terrain[12 * map.width + 15]).toBe(21);
+  });
+});
+
+describe("new enemies, secret item and theme (plan 1g2)", () => {
+  const dense = (types: SpawnType[], minTier?: number) =>
+    withStartSpawns(
+      types.map((type, i) => ({
+        type,
+        col: 3 + i * 2,
+        ...(minTier === undefined ? {} : { minTier }),
+      })),
+    );
+
+  it("turns the spiky on from tier 4 and the vertical flyer from tier 5", () => {
+    const library = dense(["spiky", "flyer-v"]);
+    for (const [level, spiky, flyerV] of [
+      [30, 0, 0],
+      [31, 1, 0],
+      [40, 1, 0],
+      [41, 1, 1],
+    ] as const) {
+      const made = ok(generateLevel(level, library));
+      // Density may switch them off; use a level count that proves eligibility instead.
+      expect(count(made, "spiky")).toBeLessThanOrEqual(spiky);
+      expect(count(made, "flyer-v")).toBeLessThanOrEqual(flyerV);
+    }
+    let seenSpiky = 0;
+    let seenFlyerV = 0;
+    for (let n = 31; n <= 100; n += 1) {
+      const made = ok(generateLevel(n, library));
+      seenSpiky += count(made, "spiky");
+      if (n <= 40) expect(count(made, "flyer-v")).toBe(0);
+      else seenFlyerV += count(made, "flyer-v");
+    }
+    expect(seenSpiky).toBeGreaterThan(0);
+    expect(seenFlyerV).toBeGreaterThan(0);
+  });
+
+  it("counts the new enemies in the density", () => {
+    const library = dense(["walker", "walker", "walker", "walker", "walker"]);
+    expect(count(ok(generateLevel(2, library)), "walker")).toBe(2);
+    const mixed = dense(["walker", "walker", "spiky", "spiky", "flyer-v"]);
+    const made = ok(generateLevel(100, mixed));
+    const enemies = ["walker", "spiky", "flyer-v"].reduce(
+      (sum, t) => sum + count(made, t as SpawnType),
+      0,
+    );
+    expect(enemies).toBe(Math.floor(0.9 * 5 + 0.5));
+  });
+
+  it("keeps at most one secret item, the same in two generations", () => {
+    const library = dense(["secret", "secret", "secret"]);
+    const first = ok(generateLevel(2, library));
+    expect(count(first, "secret")).toBe(1);
+    expect(ok(generateLevel(2, library)).map.spawns).toEqual(first.map.spawns);
+    expect(count(ok(generateLevel(2, dense(["secret"]))), "secret")).toBe(1);
+    expect(count(ok(generateLevel(2, dense([]))), "secret")).toBe(0);
+  });
+
+  it("does not use a secret item below its minTier", () => {
+    expect(count(ok(generateLevel(40, dense(["secret"], 5))), "secret")).toBe(0);
+    expect(count(ok(generateLevel(41, dense(["secret"], 5))), "secret")).toBe(1);
+  });
+
+  it("a secret item does not change which enemies are active", () => {
+    const enemies = (types: SpawnType[]) =>
+      ok(generateLevel(60, dense(types))).map.spawns.filter((s) => s.type === "walker").length;
+    const base: SpawnType[] = ["walker", "walker", "walker", "walker"];
+    expect(enemies([...base, "secret"])).toBe(enemies(base));
+    const a = ok(generateLevel(60, dense(base))).map.spawns.filter((s) => s.type === "walker");
+    const b = ok(generateLevel(60, dense([...base, "secret"]))).map.spawns.filter(
+      (s) => s.type === "walker",
+    );
+    expect(b.map((s) => s.col)).toEqual(a.map((s) => s.col));
+  });
+
+  it("the same level in the desert with another table: same solids, other tiles", () => {
+    const desert = ok(generateLevel(35, fullLibrary())).map;
+    const other = new Map(THEME_TILES.desert);
+    other.set(23, 64);
+    const changed = ok(generateLevel(35, fullLibrary(), { ...THEME_TILES, desert: other })).map;
+    const solid = (gids: number[]) => gids.map((g) => (g === 0 ? 0 : 1));
+    expect(solid(changed.terrain)).toEqual(solid(desert.terrain));
+    expect(changed.terrain).not.toEqual(desert.terrain);
+    expect(ok(generateLevel(5, fullLibrary())).map.terrain).toContain(23);
+    expect(desert.terrain).not.toContain(23);
+  });
+
+  it("changing only the desert table changes the desert (31-40) and the temple that borrows it (61-70)", () => {
+    const library = fullLibrary();
+    const other = new Map(THEME_TILES.desert);
+    other.set(23, 64);
+    const changed: number[] = [];
+    for (let n = 1; n <= 100; n += 1) {
+      const normal = ok(generateLevel(n, library)).map.terrain.join();
+      const made = ok(generateLevel(n, library, { ...THEME_TILES, desert: other }));
+      if (made.map.terrain.join() !== normal) changed.push(n);
+    }
+    expect(changed).toEqual([
+      ...Array.from({ length: 10 }, (_, i) => 31 + i),
+      ...Array.from({ length: 10 }, (_, i) => 61 + i),
+    ]);
+  });
+
+  it("a borrowed look gives the tiles of the other theme", () => {
+    const farm = ok(generateLevel(25, fullLibrary())).map;
+    const onlyMeadow = ok(
+      generateLevel(25, fullLibrary(), { meadow: new Map(THEME_TILES.meadow) }),
+    ).map;
+    expect(farm.terrain).toEqual(onlyMeadow.terrain);
+  });
+
+  it("fails with a theme that has no table", () => {
+    const made = generateLevel(35, fullLibrary(), {});
+    expect(made.ok).toBe(false);
   });
 });

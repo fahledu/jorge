@@ -130,11 +130,11 @@
           "name": "",
           "point": true,
           "rotation": 0,
-          "type": "coin",
+          "type": "secret",
           "visible": true,
           "width": 0,
-          "x": 837,
-          "y": 171
+          "x": 639,
+          "y": 153
         },
         {
           "height": 0,
@@ -145,7 +145,7 @@
           "type": "coin",
           "visible": true,
           "width": 0,
-          "x": 855,
+          "x": 837,
           "y": 171
         },
         {
@@ -157,12 +157,24 @@
           "type": "coin",
           "visible": true,
           "width": 0,
-          "x": 873,
+          "x": 855,
           "y": 171
         },
         {
           "height": 0,
           "id": 9,
+          "name": "",
+          "point": true,
+          "rotation": 0,
+          "type": "coin",
+          "visible": true,
+          "width": 0,
+          "x": 873,
+          "y": 171
+        },
+        {
+          "height": 0,
+          "id": 10,
           "name": "",
           "point": true,
           "rotation": 0,
@@ -174,7 +186,7 @@
         },
         {
           "height": 0,
-          "id": 10,
+          "id": 11,
           "name": "",
           "point": true,
           "rotation": 0,
@@ -186,7 +198,7 @@
         },
         {
           "height": 0,
-          "id": 11,
+          "id": 12,
           "name": "",
           "point": true,
           "rotation": 0,
@@ -198,7 +210,7 @@
         },
         {
           "height": 0,
-          "id": 12,
+          "id": 13,
           "name": "",
           "point": true,
           "rotation": 0,
@@ -210,7 +222,7 @@
         },
         {
           "height": 0,
-          "id": 13,
+          "id": 14,
           "name": "",
           "point": true,
           "rotation": 0,
@@ -222,7 +234,7 @@
         },
         {
           "height": 0,
-          "id": 14,
+          "id": 15,
           "name": "",
           "point": true,
           "rotation": 0,
@@ -234,7 +246,7 @@
         },
         {
           "height": 0,
-          "id": 15,
+          "id": 16,
           "name": "",
           "point": true,
           "rotation": 0,
@@ -246,7 +258,7 @@
         },
         {
           "height": 0,
-          "id": 16,
+          "id": 17,
           "name": "",
           "point": true,
           "rotation": 0,
@@ -258,7 +270,7 @@
         },
         {
           "height": 0,
-          "id": 17,
+          "id": 18,
           "name": "",
           "point": true,
           "rotation": 0,
@@ -277,7 +289,7 @@
     }
   ],
   "nextlayerid": 4,
-  "nextobjectid": 18,
+  "nextobjectid": 19,
   "orientation": "orthogonal",
   "properties": [
     {
@@ -288,12 +300,12 @@
     {
       "name": "contentHash",
       "type": "string",
-      "value": "c7a271846380fce1"
+      "value": "69bb5b4914afdadc"
     },
     {
       "name": "generatorVersion",
       "type": "int",
-      "value": 1
+      "value": 2
     },
     {
       "name": "levelNumber",

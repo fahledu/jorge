@@ -6,6 +6,9 @@ const LEVELS_PER_TIER = 10;
 export const LEVEL_COUNT = 100;
 /** Flyers take part from this tier on (ADR 0013). */
 export const FLYER_MIN_TIER = 3;
+/** The spiky takes part from this tier on, the vertical flyer from the next (ADR 0014). */
+export const SPIKY_MIN_TIER = 4;
+export const FLYER_V_MIN_TIER = 5;
 
 /** Difficulty block of a level: 1 for levels 1–10, 10 for 91–100. */
 export function tierOf(levelNumber: number): number {

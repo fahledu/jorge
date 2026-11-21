@@ -1,17 +1,21 @@
 // Level generator of ADR 0013: draws a start chunk, the middle chunks and a finish chunk
 // with the level's own sequence, joins them side by side, redraws the edges at the joins
-// and turns spawns on or off by tier and enemy density. Pure: the scripts read the files.
+// swaps the tiles for the tier's theme and turns spawns on or off by tier, enemy density and
+// the draw of the secret item. Pure: the scripts read the files.
 import {
   chunkWeight,
   difficultyWindow,
   enemyDensity,
   FLYER_MIN_TIER,
+  FLYER_V_MIN_TIER,
   middleChunkCount,
+  SPIKY_MIN_TIER,
   tierOf,
 } from "./curve.ts";
 import { isSolid } from "./enemies.ts";
 import { createPrng, levelSeed } from "./prng.ts";
-import { EDGE_FAMILIES } from "./tiles.ts";
+import { applyTheme, type Theme, themeOf } from "./theme.ts";
+import { EDGE_FAMILIES, THEME_TILES } from "./tiles.ts";
 import { MAP_HEIGHT, type Spawn, TILE_SIZE, type TmjMap } from "./tmj.ts";
 
 /** Attempts of a level whose chunks run out of candidates before failing the build. */
@@ -44,6 +48,7 @@ const byName = (a: { name: string }, b: { name: string }): number =>
 export function generateLevel(
   levelNumber: number,
   library: readonly LibraryChunk[],
+  themeTable: Partial<Record<Theme, ReadonlyMap<number, number>>> = THEME_TILES,
 ): GeneratedLevel {
   const tier = tierOf(levelNumber);
   const where = `level ${levelNumber} (tier ${tier})`;
@@ -107,6 +112,12 @@ export function generateLevel(
   if (chosen === null) return { ok: false, error: `${failure}, after ${MAX_ATTEMPTS} attempts` };
 
   const map = join(chosen.map((c) => c.map));
+  // The edges were redrawn with the base palette above; only now do the tiles change.
+  try {
+    Object.assign(map, applyTheme(map.terrain, map.decor, themeOf(tier), themeTable));
+  } catch (error) {
+    return { ok: false, error: `${where}: ${error instanceof Error ? error.message : error}` };
+  }
   map.spawns = activeSpawns(chosen, levelNumber, tier, random);
   return { ok: true, map, chunks: chosen.map((c) => c.name), seed, tier };
 }
@@ -161,6 +172,8 @@ function join(maps: readonly TmjMap[]): TmjMap {
   return { kind: "generated", width, height: MAP_HEIGHT, terrain, decor, spawns: [], chunk: null };
 }
 
+const ENEMY_TYPES: ReadonlySet<string> = new Set(["walker", "flyer", "spiky", "flyer-v"]);
+
 /** Spawns of the level: tier filters, then the enemy density, then ids 1 to N (ADR 0013). */
 function activeSpawns(
   chunks: readonly Candidate[],
@@ -174,6 +187,8 @@ function activeSpawns(
     for (const spawn of [...map.spawns].sort((a, b) => a.id - b.id)) {
       if (spawn.minTier !== undefined && spawn.minTier > tier) continue;
       if (spawn.type === "flyer" && tier < FLYER_MIN_TIER) continue;
+      if (spawn.type === "spiky" && tier < SPIKY_MIN_TIER) continue;
+      if (spawn.type === "flyer-v" && tier < FLYER_V_MIN_TIER) continue;
       const x = spawn.x + offset * TILE_SIZE;
       kept.push({
         id: 0,
@@ -187,7 +202,7 @@ function activeSpawns(
     offset += map.width;
   }
 
-  const enemies = kept.filter((s) => s.type === "walker" || s.type === "flyer");
+  const enemies = kept.filter((s) => ENEMY_TYPES.has(s.type));
   const active = Math.floor(enemyDensity(levelNumber) * enemies.length + 0.5);
   // Partial Fisher–Yates over the enemies in level order.
   const order = enemies.map((_, i) => i);
@@ -197,7 +212,15 @@ function activeSpawns(
   }
   const on = new Set(order.slice(0, active).map((i) => enemies[i]));
 
-  const spawns = kept.filter((s) => (s.type !== "walker" && s.type !== "flyer") || on.has(s));
+  // The secret item: no eligible one, none; one, it stays without using a value; more, one
+  // value picks among them in level order (plan 1g2, decision 6). After the enemies, so it
+  // never changes which of them are active.
+  const secrets = kept.filter((s) => s.type === "secret");
+  const secret = secrets.length <= 1 ? secrets[0] : secrets[Math.floor(random() * secrets.length)];
+
+  const spawns = kept.filter(
+    (s) => (!ENEMY_TYPES.has(s.type) || on.has(s)) && (s.type !== "secret" || s === secret),
+  );
   spawns.forEach((s, index) => {
     s.id = index + 1;
   });

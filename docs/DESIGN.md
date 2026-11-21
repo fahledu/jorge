@@ -31,7 +31,7 @@ Contrastes calculados (WCAG 2.2). Texto ≥ 4,5:1; texto grande e bordas de cont
 | `--color-success` | Fase concluída, confirmação |
 | `--color-border` | Borda de campo, botão secundário e cartão |
 | `--color-focus` | Anel de foco (com sombra `--color-bg` por fora) |
-| `--color-sky` | Céu do jogo atrás do mapa (cor de fundo do canvas) |
+| `--color-sky` | Fundo do canvas fora do mapa e nas telas sem fase; o céu de cada tema mora em `src/game/themes.ts` (ADR 0015) |
 
 | Par (texto / fundo) | Contraste | Mínimo |
 |---|---|---|

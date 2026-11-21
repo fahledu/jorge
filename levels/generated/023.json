@@ -202,11 +202,11 @@
           "name": "",
           "point": true,
           "rotation": 0,
-          "type": "coin",
+          "type": "secret",
           "visible": true,
           "width": 0,
-          "x": 1557,
-          "y": 171
+          "x": 1359,
+          "y": 153
         },
         {
           "height": 0,
@@ -217,7 +217,7 @@
           "type": "coin",
           "visible": true,
           "width": 0,
-          "x": 1575,
+          "x": 1557,
           "y": 171
         },
         {
@@ -229,7 +229,7 @@
           "type": "coin",
           "visible": true,
           "width": 0,
-          "x": 1593,
+          "x": 1575,
           "y": 171
         },
         {
@@ -241,12 +241,24 @@
           "type": "coin",
           "visible": true,
           "width": 0,
+          "x": 1593,
+          "y": 171
+        },
+        {
+          "height": 0,
+          "id": 16,
+          "name": "",
+          "point": true,
+          "rotation": 0,
+          "type": "coin",
+          "visible": true,
+          "width": 0,
           "x": 1917,
           "y": 189
         },
         {
           "height": 0,
-          "id": 16,
+          "id": 17,
           "name": "",
           "point": true,
           "rotation": 0,
@@ -258,7 +270,7 @@
         },
         {
           "height": 0,
-          "id": 17,
+          "id": 18,
           "name": "",
           "point": true,
           "rotation": 0,
@@ -277,7 +289,7 @@
     }
   ],
   "nextlayerid": 4,
-  "nextobjectid": 18,
+  "nextobjectid": 19,
   "orientation": "orthogonal",
   "properties": [
     {
@@ -288,12 +300,12 @@
     {
       "name": "contentHash",
       "type": "string",
-      "value": "6026bcbe08548c49"
+      "value": "67bb7ff02e7cd51b"
     },
     {
       "name": "generatorVersion",
       "type": "int",
-      "value": 1
+      "value": 2
     },
     {
       "name": "levelNumber",

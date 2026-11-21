@@ -138,6 +138,8 @@ describe("buildManualLevel", () => {
       widthInTiles: 100,
       targetTimeSeconds: 25,
       tilesetName: "tileset-tiles",
+      theme: "meadow",
+      secret: null,
       start: { x: 27, y: 207 },
       flag: { x: 98 * 18 + 9, y: 207 },
       items: [],
@@ -256,7 +258,7 @@ describe("buildGeneratedLevel", () => {
     expect(level.properties).toEqual([
       { name: "chunks", type: "string", value: "start,meadow,finish" },
       { name: "contentHash", type: "string", value: generated().contentHash },
-      { name: "generatorVersion", type: "int", value: 1 },
+      { name: "generatorVersion", type: "int", value: 2 },
       { name: "levelNumber", type: "int", value: 37 },
       { name: "seed", type: "int", value: 123 },
       { name: "targetTimeSeconds", type: "int", value: 10 },
@@ -278,5 +280,42 @@ describe("buildGeneratedLevel", () => {
     const map = mapOf(makeMap(40));
     const base = { seed: 1, chunks: [], map, tileset: TILESET, imagePath: IMAGE, sha256 };
     expect(() => buildGeneratedLevel({ ...base, levelNumber: 101 })).toThrow(/level number/);
+  });
+});
+
+describe("theme and secret item of readLevelInfo (plan 1g2)", () => {
+  const withTier = (levelNumber: number) => {
+    const file = JSON.parse(buildManualLevel(input(mapOf(makeMap(100)), levelNumber)).json);
+    return file;
+  };
+
+  it("reads the theme from the tier of the file", () => {
+    expect(readLevelInfo(withTier(1)).theme).toBe("meadow");
+    expect(readLevelInfo(withTier(25)).theme).toBe("farm");
+    expect(readLevelInfo(withTier(35)).theme).toBe("desert");
+  });
+
+  it("rejects a file without a tier", () => {
+    const file = withTier(1);
+    file.properties = file.properties.filter((p: { name: string }) => p.name !== "tier");
+    expect(() => readLevelInfo(file)).toThrow(/tier/);
+  });
+
+  it("reads the secret item, or null", () => {
+    const file = withTier(1);
+    expect(readLevelInfo(file).secret).toBeNull();
+    file.layers[2].objects.push({ id: 90, type: "secret", x: 99, y: 171 });
+    expect(readLevelInfo(file).secret).toEqual({ id: 90, x: 99, y: 171 });
+  });
+
+  it("reads the new enemy types with their range", () => {
+    const file = withTier(1);
+    file.layers[2].objects.push(
+      { id: 91, type: "spiky", x: 99, y: 207 },
+      { id: 92, type: "flyer-v", x: 99, y: 117 },
+    );
+    const { enemies } = readLevelInfo(file);
+    expect(enemies.map((e) => e.type)).toEqual(["spiky", "flyer-v"]);
+    expect(enemies[1]?.range).toEqual({ min: 60, max: 174 });
   });
 });

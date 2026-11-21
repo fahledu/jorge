@@ -19,7 +19,9 @@ import {
   enemyBox,
   initialPatrol,
   isStomp,
+  isStompable,
   type PatrolState,
+  patrolAxis,
   stepPatrol,
 } from "../../domain/enemies.ts";
 import {
@@ -49,11 +51,13 @@ import {
 import { isBelowMap, PLAYER_BODY, STEP_MS } from "../../domain/physics.ts";
 import { GAME_HEIGHT, GAME_WIDTH } from "../../domain/scale.ts";
 import { runningPoints, type ScoreSummary, scoreSummary } from "../../domain/score.ts";
+import { lookOf, type Theme } from "../../domain/theme.ts";
 import {
   COIN_TILE,
   FLAG_TILES,
   gidOf,
   HEART_TILES,
+  SECRET_TILE,
   SPIKE_TILES,
   SPRING_TILES,
   WINGS_TILE,
@@ -64,6 +68,7 @@ import { CHARACTERS, Player } from "../entities/player.ts";
 import type { EventBus } from "../events.ts";
 import { Hud } from "../hud.ts";
 import type { LevelData } from "../levels.ts";
+import { type ThemeLook, themeLook } from "../themes.ts";
 
 const TILES = "tiles";
 const BACKGROUNDS = "backgrounds";
@@ -71,11 +76,11 @@ const FLAG_WAVE = "flag-wave";
 /** Flag cloth animation, frames per second. */
 const FLAG_FPS = 4;
 /**
- * First theme of the background sheet (4 tiles of 24 px wide, opaque): sky, a band of
- * clouds and hills, and a base. The band starts 2 tiles above the ground under the start
- * and ends 12 px above it (plan 1g, decision 4: top at 180 px on level 1, ground on row 12),
- * so the hills show behind the
- * terrain; sky above it, base below. It does not follow the ground along the level.
+ * Background of the level's theme (ADR 0015, `src/game/themes.ts`): a flat sky, then one
+ * strip of the background sheet (2 cells of 24 px wide, opaque) with a band of clouds and
+ * hills and a base under it. The band starts 2 tiles above the ground under the start and
+ * ends 12 px above it (plan 1g, decision 4: top at 180 px on level 1, ground on row 12),
+ * so the hills show behind the terrain. It does not follow the ground along the level.
  */
 const BAND_HEIGHT = 24;
 const BAND_ABOVE_GROUND = 2 * TILE_SIZE;
@@ -85,13 +90,46 @@ function backgroundStrips(groundRow: number) {
     Math.max(0, groundRow * TILE_SIZE - BAND_ABOVE_GROUND),
     GAME_HEIGHT - BAND_HEIGHT,
   );
-  return [
-    { frame: "sky", sheetY: 0, y: 0, height: top },
-    { frame: "band", sheetY: 24, y: top, height: BAND_HEIGHT },
-    { frame: "base", sheetY: 48, y: top + BAND_HEIGHT, height: GAME_HEIGHT - top - BAND_HEIGHT },
-  ];
+  return {
+    skyHeight: top,
+    strips: [
+      { frame: "band", sheetY: 24, y: top, height: BAND_HEIGHT },
+      { frame: "base", sheetY: 48, y: top + BAND_HEIGHT, height: GAME_HEIGHT - top - BAND_HEIGHT },
+    ],
+  };
 }
-const THEME_WIDTH = 96;
+
+/**
+ * Copies one cell row of the strip into `context`: the strip's own sky color becomes the
+ * theme's sky, and the rest is multiplied by the tint, if any.
+ */
+function paintStrip(
+  context: CanvasRenderingContext2D,
+  sheet: HTMLImageElement,
+  look: ThemeLook,
+  sheetY: number,
+): void {
+  const { x, width } = look.strip;
+  context.drawImage(sheet, x, sheetY, width, BAND_HEIGHT, 0, 0, width, BAND_HEIGHT);
+  // The top-left pixel of the band row is the strip's sky in the 4 strips of the pack
+  // (checked in plan 1g2); a strip drawn otherwise would swap the wrong color.
+  const sky = context.getImageData(0, 0, 1, 1).data;
+  const strip = context.getImageData(0, 0, width, BAND_HEIGHT);
+  const px = strip.data;
+  const channel = (color: number, shift: number) => (color >> shift) & 0xff;
+  for (let i = 0; i < px.length; i += 4) {
+    if (sheetY === 24 && px[i] === sky[0] && px[i + 1] === sky[1] && px[i + 2] === sky[2]) {
+      px[i] = channel(look.sky, 16);
+      px[i + 1] = channel(look.sky, 8);
+      px[i + 2] = channel(look.sky, 0);
+    } else if (look.tint !== null) {
+      px[i] = Math.round(((px[i] ?? 0) * channel(look.tint, 16)) / 255);
+      px[i + 1] = Math.round(((px[i + 1] ?? 0) * channel(look.tint, 8)) / 255);
+      px[i + 2] = Math.round(((px[i + 2] ?? 0) * channel(look.tint, 0)) / 255);
+    }
+  }
+  context.putImageData(strip, 0, 0);
+}
 /** The background scrolls at half the speed of the terrain (plan 1b). */
 const BACKGROUND_SCROLL = 0.5;
 /** The spring shows compressed this long after a launch, ms (plan 1d). */
@@ -127,6 +165,11 @@ export interface LevelSceneData {
   /** "FASE" on the HUD (strings.ts) and the UI font family (tokens). */
   levelWord: string;
   font: string;
+  /**
+   * Draws the secret item where its spawn is, with no contact (plan 1g2, decision 4): only
+   * `?segredo=1` in `pnpm dev` turns it on; the challenge mode replaces it in item 1i2.
+   */
+  showSecret: boolean;
 }
 
 export type LevelStatus = "playing" | "paused" | "completed" | "dying" | "loading";
@@ -293,7 +336,7 @@ export class LevelScene extends Phaser.Scene {
     const tileset = map.addTilesetImage(info.tilesetName, TILES);
     if (!tileset) throw new Error(`tileset ${info.tilesetName} not found in level ${key}`);
 
-    this.#createBackground(info.groundRow);
+    this.#createBackground(info.groundRow, info.theme);
     map.createLayer("decor", tileset);
     const terrain = map.createLayer("terrain", tileset);
     if (!terrain) throw new Error(`level ${key} has no terrain layer`);
@@ -308,6 +351,10 @@ export class LevelScene extends Phaser.Scene {
     this.#pickupIndex = new ColumnIndex(this.#pickups, (pickup) => pickup.box, info.widthInTiles);
     this.#springIndex = new ColumnIndex(this.#springs, (spring) => spring.box, info.widthInTiles);
     this.#createEnemies(info.enemies);
+    if (this.#data.showSecret && info.secret) {
+      const { col, row } = cellOf(info.secret);
+      this.add.image(col * TILE_SIZE, row * TILE_SIZE, TILES, SECRET_TILE).setOrigin(0, 0);
+    }
 
     const width = info.widthInTiles * TILE_SIZE;
     const height = MAP_HEIGHT * TILE_SIZE;
@@ -395,15 +442,20 @@ export class LevelScene extends Phaser.Scene {
 
   /** Test hook: the enemies of the level, alive or defeated. */
   enemySnapshots(): EnemySnapshot[] {
-    return this.#enemies.map(({ info, patrol, defeatedMs }) => ({
-      id: info.id,
-      type: info.type,
-      x: patrol.x,
-      y: info.y,
-      col: Math.floor(patrol.x / TILE_SIZE),
-      row: info.row,
-      defeated: defeatedMs !== null,
-    }));
+    return this.#enemies.map(({ info, patrol, defeatedMs }) => {
+      const vertical = patrolAxis(info.type) === "y";
+      const x = vertical ? info.x : patrol.pos;
+      const y = vertical ? patrol.pos : info.y;
+      return {
+        id: info.id,
+        type: info.type,
+        x,
+        y,
+        col: Math.floor(x / TILE_SIZE),
+        row: Math.floor(y / TILE_SIZE),
+        defeated: defeatedMs !== null,
+      };
+    });
   }
 
   /** Test hook: stops or restarts the enemies' patrol. */
@@ -463,7 +515,8 @@ export class LevelScene extends Phaser.Scene {
     for (const enemy of this.#enemies) {
       if (enemy.defeatedMs !== null || !overlaps(box, enemy.box)) continue;
       const { id, type } = enemy.info;
-      enemyContacts.push({ id, type, stomp: isStomp(box, movedVy, enemy.box), box: enemy.box });
+      const stomp = isStompable(type) && isStomp(box, movedVy, enemy.box);
+      enemyContacts.push({ id, type, stomp, box: enemy.box });
     }
     const itemContacts = this.#itemContacts;
     itemContacts.length = 0;
@@ -558,10 +611,16 @@ export class LevelScene extends Phaser.Scene {
         continue;
       }
       if (this.#status !== "playing" || this.#enemiesFrozen) continue;
-      const { type, row, range } = enemy.info;
+      const { type, range, x, y } = enemy.info;
       enemy.patrol = stepPatrol(enemy.patrol, range, ENEMY_SPEED[type], STEP_MS);
-      enemy.box = enemyBox(type, enemy.patrol.x, row);
-      enemy.sprite.place(enemy.patrol.x, enemy.patrol.direction);
+      const pos = enemy.patrol.pos;
+      if (patrolAxis(type) === "y") {
+        enemy.box = enemyBox(type, x, pos);
+        enemy.sprite.place(pos, enemy.patrol.direction, x);
+      } else {
+        enemy.box = enemyBox(type, pos, y);
+        enemy.sprite.place(pos, enemy.patrol.direction);
+      }
     }
   }
 
@@ -668,13 +727,17 @@ export class LevelScene extends Phaser.Scene {
 
   #createEnemies(enemies: readonly LevelEnemy[]): void {
     this.#enemies = enemies.map((info) => {
-      const patrol = initialPatrol(info.range, info.x);
-      const sprite = new Enemy(this, info.type, patrol.x, info.row);
-      sprite.place(patrol.x, patrol.direction);
+      const vertical = patrolAxis(info.type) === "y";
+      const patrol = initialPatrol(info.range, vertical ? info.y : info.x);
+      // The frames of the level's own theme (ADR 0015), not of the borrowed look.
+      const sprite = new Enemy(this, this.#data.level.info.theme, info.type, patrol.pos, info.row);
+      sprite.place(patrol.pos, patrol.direction, info.x);
       return {
         info,
         patrol,
-        box: enemyBox(info.type, patrol.x, info.row),
+        box: vertical
+          ? enemyBox(info.type, info.x, patrol.pos)
+          : enemyBox(info.type, patrol.pos, info.y),
         sprite,
         defeatedMs: null,
       };
@@ -704,27 +767,21 @@ export class LevelScene extends Phaser.Scene {
       .play(FLAG_WAVE);
   }
 
-  #createBackground(groundRow: number): void {
+  #createBackground(groundRow: number, theme: Theme): void {
     const sheet = this.textures.get(BACKGROUNDS).getSourceImage();
     if (!(sheet instanceof HTMLImageElement)) throw new Error("background sheet is not an image");
-    this.#background = backgroundStrips(groundRow).map((strip) => {
-      // A texture of its own per strip: a tile sprite of a frame inside the sheet samples
-      // the neighbouring rows at its edges and shows seams.
-      const textureKey = `${BACKGROUNDS}-${strip.frame}`;
+    const look = themeLook(theme);
+    const { skyHeight, strips } = backgroundStrips(groundRow);
+    this.add.rectangle(0, 0, GAME_WIDTH, skyHeight, look.sky).setOrigin(0, 0).setScrollFactor(0);
+    this.#background = strips.map((strip) => {
+      // A texture of its own per look and strip: a tile sprite of a frame inside the sheet
+      // samples the neighbouring rows at its edges and shows seams; the key carries the
+      // look, or a level opened after another would keep the previous theme's strip.
+      const textureKey = `${BACKGROUNDS}-${lookOf(theme)}-${strip.frame}`;
       if (!this.textures.exists(textureKey)) {
-        const texture = this.textures.createCanvas(textureKey, THEME_WIDTH, BAND_HEIGHT);
+        const texture = this.textures.createCanvas(textureKey, look.strip.width, BAND_HEIGHT);
         if (!texture) throw new Error(`could not create texture ${textureKey}`);
-        texture.context.drawImage(
-          sheet,
-          0,
-          strip.sheetY,
-          THEME_WIDTH,
-          BAND_HEIGHT,
-          0,
-          0,
-          THEME_WIDTH,
-          BAND_HEIGHT,
-        );
+        paintStrip(texture.context, sheet, look, strip.sheetY);
         texture.refresh();
       }
       return this.add

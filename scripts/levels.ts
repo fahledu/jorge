@@ -5,8 +5,9 @@ import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { generateLevel, type LibraryChunk } from "../src/domain/generator.ts";
-import { buildGeneratedLevel, buildManualLevel, LEVEL_COUNT } from "../src/domain/level.ts";
+import { buildGeneratedLevel, buildManualLevel, LEVEL_COUNT, tierOf } from "../src/domain/level.ts";
 import { checkReachable } from "../src/domain/reach.ts";
+import { applyTheme, themeOf } from "../src/domain/theme.ts";
 import {
   type FileKind,
   formatTmjError,
@@ -100,8 +101,13 @@ export function planLevels(root: string): LevelPlan {
     let built: string;
     let label: string;
     if (manualMap !== undefined) {
-      map = manualMap;
-      label = `level ${n} (${MANUAL_DIR}/${levelFile(n).replace(".json", ".tmj")})`;
+      const manualLabel = `level ${n} (${MANUAL_DIR}/${levelFile(n).replace(".json", ".tmj")})`;
+      if (manualMap.spawns.filter((s) => s.type === "secret").length > 1) {
+        return fail(`${manualLabel}: a level has at most one "secret" spawn`);
+      }
+      // The same swap as a generated level of the same tier (plan 1g2, decision 3).
+      map = { ...manualMap, ...applyTheme(manualMap.terrain, manualMap.decor, themeOf(tierOf(n))) };
+      label = manualLabel;
       built = buildManualLevel({
         levelNumber: n,
         source: `manual/${levelFile(n).replace(".json", ".tmj")}`,

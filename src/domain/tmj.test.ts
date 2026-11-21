@@ -107,6 +107,23 @@ describe("parseTmj: cases of ADR 0012", () => {
     ]);
   });
 
+  it("rejects a tile outside the base palette with layer, column and row", () => {
+    const sand = makeMap(27);
+    terrainOf(sand)[27 * 3 + 5] = 61;
+    expect(errorsOf(sand)).toEqual([
+      {
+        file: MANUAL_FILE,
+        layer: "terrain",
+        col: 5,
+        row: 3,
+        message: "GID 61 is outside the base palette (levels/README.md)",
+      },
+    ]);
+    const decor = makeMap(27);
+    (layer(decor, 1).data as number[])[27 * 2 + 1] = 146;
+    expect(errorsOf(decor, "chunk")[0]).toMatchObject({ layer: "decor", col: 1, row: 2 });
+  });
+
   it("rejects a GID with the flip bit", () => {
     const map = makeMap(27);
     terrainOf(map)[0] = 0x80000001;
@@ -143,7 +160,7 @@ describe("parseTmj: cases of ADR 0012", () => {
   });
 
   describe("enemy spawns (ADR 0012)", () => {
-    const withEnemy = (type: "walker" | "flyer", y: number) =>
+    const withEnemy = (type: "walker" | "flyer" | "spiky" | "flyer-v", y: number) =>
       makeMap(27, {
         spawns: [
           { type: "start", x: 9, y: 207 },
@@ -169,6 +186,32 @@ describe("parseTmj: cases of ADR 0012", () => {
       const map = withEnemy("walker", 207);
       terrainOf(map)[12 * 27 + 5] = 69;
       expect(messages(map)).toMatch(/no solid ground below/);
+    });
+
+    it("checks the new types like the old ones", () => {
+      expect(parse(withEnemy("spiky", 207)).ok).toBe(true);
+      expect(parse(withEnemy("flyer-v", 171)).ok).toBe(true);
+      expect(messages(withEnemy("flyer-v", 225))).toMatch(/"flyer-v" spawn [0-9]+ is inside/);
+      const floating = withEnemy("spiky", 207);
+      for (let row = 12; row < 15; row += 1) terrainOf(floating)[row * 27 + 5] = 0;
+      expect(messages(floating)).toMatch(/"spiky" spawn [0-9]+ has no solid ground below/);
+    });
+
+    it("accepts minTier on spiky, flyer-v and secret", () => {
+      const tiered = (type: string) =>
+        makeMap(27, {
+          spawns: [
+            { type: "start", x: 9, y: 207 },
+            { type: "flag", x: 400, y: 207 },
+            {
+              type,
+              x: 99,
+              y: type === "spiky" ? 207 : 171,
+              properties: [{ name: "minTier", type: "int", value: 3 }],
+            },
+          ],
+        });
+      for (const type of ["spiky", "flyer-v", "secret"]) expect(parse(tiered(type)).ok).toBe(true);
     });
 
     it("rejects a flyer inside the terrain", () => {

@@ -55,6 +55,15 @@ Para cada fase **1, 10, 50 e 100**, no notebook (teclado) e no celular (toque):
   início; nas junções dos trechos, grama e terra têm a borda certa (sem degrau cortado no
   meio do tile); a bandeira é alcançável só pulando. Anote a fase e a coluna de qualquer
   junção estranha (`pnpm levels:preview levels/generated/NNN.json` mostra a fase em PNG).
+- Temas (ADR 0015), com `?fase=N` no `pnpm dev`: `1` campo, `11` floresta, `31` deserto,
+  `41` caverna e `71` neve, cada um com o seu céu, faixa de morros, terreno e decoração,
+  sem emenda entre o céu e a faixa nem borda errada nas junções; jogador, espinho, moeda
+  e inimigo legíveis (caverna em especial). `?fase=21` mostra a cara do campo (fazenda
+  provisória até o 1g3).
+- Inimigos novos (a partir da fase 31 e 41, ex.: `?fase=42`): o espinhoso (robô com broca)
+  fere ao ser pisado e não é derrotado; o voador vertical (bloco de cara brava) sobe e
+  desce e é derrotado pisando, somando 200. `?fase=42&segredo=1` mostra a gema do item
+  secreto (sem efeito até o 1i2); sem `segredo=1` ela não aparece.
 - **Fps:** com o contador, fique 30 s numa parte movimentada da fase e anote a média.
   Meta: 60. Mínimo aceitável: 55 de média. Abaixo disso, o item não fecha.
 

@@ -4,9 +4,10 @@ Ponto de retomada: onde o projeto está, o que vem a seguir e o que está em abe
 Atualize ao fim de cada item do roadmap (`docs/ROADMAP.md`) ou quando uma questão for
 resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico está no git.
 
-- **Última atualização:** 2026-11-20
+- **Última atualização:** 2026-11-21
 - **Fase:** Fase 1 (MVP).
-- **Próximo passo:** item **1g2** (temas e inimigos novos): `/feature 1g2`.
+- **Próximo passo:** item **1g3** (temas das expansões): `/feature 1g3`. Antes, o usuário
+  copia os arquivos usados das expansões de `packs/` para `assets/kenney/` (ADR 0008).
 
 ## Feito
 
@@ -86,6 +87,20 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
   não (provável voador sobre o vão do trecho `ledge`; regra nova no ADR 0012), fase 100 com
   117 fps de média. Pedidos da rodada viraram ADRs 0014 (modos livre e desafio, vidas, top
   10 local) e 0015 (temas por bloco) e os itens 1g2, 1i2 e 1j2 do roadmap.
+- 1g2: temas e inimigos novos. ADR 0015 revisto (um tema a cada 10 fases, 10 temas, só
+  terreno, decoração e fundo mudam; fase manual também troca) e ADR 0008 (expansões CC0 da
+  Kenney aceitas; packs locais em `packs/`, fora do git); item 1g3 novo. `theme.ts`
+  (`themeOf`, `lookOf`, `applyTheme`, tema provisório dos 5 blocos de expansão),
+  `THEME_TILES` dos 5 temas do pack base, conferência da paleta base nos trechos;
+  espinhoso e voador vertical (trilho vertical, `isStompable`, `scoredAs`), spawn e
+  sorteio do item secreto, `GENERATOR_VERSION` 2; 99 fases regeneradas (a 001 igual).
+  Cena: céu do tema no lugar do céu da faixa, tom, chave de textura por tema; gema só com
+  `?segredo=1` no `pnpm dev`; `levels:preview --sheet characters|backgrounds`. Mesmo
+  sprite de inimigo nos 10 temas (o pack não tem variantes de cor). Desvios do plano: o
+  topo do chão da caverna é 121–124 (141–144 têm contorno embaixo e deixavam uma linha);
+  trocar a tabela do deserto muda também 61–70 (templo provisório); céu e tom da floresta
+  escurecidos na aprovação. Conferido por captura de tela no `pnpm dev` (fases 1, 11, 31,
+  41, 71 e 42 com a gema, 60 fps) e por E2E; cores aprovadas pelo usuário.
 
 ## Limites aceitos
 
@@ -97,8 +112,8 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
   só citam o nome). Confirmado, o valor também vai para o contexto e os transcripts.
 - Código que carrega o `.env.local` (dotenv, `--env-file`) e imprime `process.env`
   expõe o valor sem passar pelo hook.
-- A pasta `kenney_pixel-platformer/` continua no histórico do git (commit inicial); é
-  CC0, sem problema de licença.
+- A pasta `kenney_pixel-platformer/` (hoje `packs/pixel-platformer/`) continua no
+  histórico do git (commit inicial); é CC0, sem problema de licença.
 - Escala inteira em pixel CSS: em tela com zoom de 125% ou 150% o pixel pode ficar
   irregular; se incomodar no teste à mão, vira mudança no ADR 0009.
 - O HUD do canvas não é lido pelo leitor de tela (o canvas tem um rótulo fixo); tempo e
@@ -109,7 +124,9 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
 
 ## Questões em aberto
 
-- Firefox não verificado no 1g.
+- Firefox não verificado no 1g nem no 1g2.
+- Rodada à mão do 1g2 pelo roteiro (jogar os 5 temas, pisar no espinhoso e no voador
+  vertical) não feita: conferido só por captura de tela e E2E.
 - O efeito de derrota com reduzir efeitos não tem E2E (só unidade e roteiro).
 
 

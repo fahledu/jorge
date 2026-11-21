@@ -189,3 +189,48 @@ test("the pause stops the enemies", async ({ page }) => {
     [WALL_WALKER.id, before ?? 0] as const,
   );
 });
+
+test.describe("enemies of plan 1g2", () => {
+  // The first generated level with both new types, from 41 on (ADR 0014; plan 1g2), so a
+  // new generator version or new chunks do not break the test.
+  test.beforeEach(async ({ page }) => {
+    const found = await page.evaluate(async () => {
+      for (let n = 41; n <= 100; n++) {
+        await window.__jorgeTest?.openLevel(n);
+        const types = window.__jorgeTest?.level()?.enemies.map((e) => e.type) ?? [];
+        if (types.includes("spiky") && types.includes("flyer-v")) return n;
+      }
+      return null;
+    });
+    if (found === null) throw new Error("no level has both a spiky and a vertical flyer");
+    await page.waitForFunction(() => window.__jorgeTest?.player()?.onGround);
+  });
+
+  test("falling on a spiky hurts, with no stomp, and the spiky stays", async ({ page }) => {
+    await page.evaluate(() => window.__jorgeTest?.freezeEnemies(true));
+    const spiky = await page.evaluate(() =>
+      window.__jorgeTest?.enemies().find((e) => e.type === "spiky"),
+    );
+    if (!spiky) throw new Error("the level has no spiky");
+    await place(page, spiky.col, spiky.row - 3);
+    await page.waitForFunction(() => window.__jorgeTest?.state().hearts === 2);
+    const after = await page.evaluate(
+      (id) => window.__jorgeTest?.enemies().find((e) => e.id === id),
+      spiky.id,
+    );
+    expect(after?.defeated).toBe(false);
+    expect(await state(page)).toMatchObject({ defeatedWalkers: 0, defeatedFlyers: 0 });
+  });
+
+  test("falling on a vertical flyer defeats it for 200 points", async ({ page }) => {
+    await page.evaluate(() => window.__jorgeTest?.freezeEnemies(true));
+    const flyer = await page.evaluate(() =>
+      window.__jorgeTest?.enemies().find((e) => e.type === "flyer-v"),
+    );
+    if (!flyer) throw new Error("the level has no vertical flyer");
+    const before = (await state(page))?.points ?? 0;
+    await stomp(page, flyer);
+    expect(await state(page)).toMatchObject({ hearts: 3, defeatedFlyers: 1 });
+    expect((await state(page))?.points).toBe(before + 200);
+  });
+});

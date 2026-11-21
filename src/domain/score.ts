@@ -1,11 +1,11 @@
 // Points of an attempt, from its list of events (ADR 0006). The scene and the DOM only show
 // what these functions return; no scoring number lives anywhere else.
 import type { AttemptEvent } from "./attempt.ts";
-import type { EnemyType } from "./enemies.ts";
+import type { ScoredEnemy } from "./enemies.ts";
 import { EPSILON_MS } from "./physics.ts";
 
 export const POINTS = { walker: 100, flyer: 200, coin: 10 } as const satisfies Record<
-  EnemyType | "coin",
+  ScoredEnemy | "coin",
   number
 >;
 export const COMPLETION_BASE = 500;

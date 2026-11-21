@@ -63,7 +63,7 @@ describe("buildLevels", () => {
     const usesGaps = names.filter((name) => chunksOf(name).includes("gaps"));
     const file = path.join(root, "levels/chunks/gaps.tmj");
     const json = JSON.parse(readFileSync(file, "utf8"));
-    json.layers[1].data[0] = 125; // a sprout in the sky of the decor layer
+    json.layers[1].data[0] = 86; // a signpost in the sky of the decor layer (same in every theme)
     writeFileSync(file, JSON.stringify(json));
     const { written } = buildLevels({ root });
     expect(usesGaps.length).toBeGreaterThan(1);
@@ -137,5 +137,97 @@ describe("buildLevels", () => {
   it.each(["1.tmj", "abc.tmj", "000.tmj", "101.tmj"])("rejects the file name %s", (name) => {
     const root = makeRoot({ [name]: realSource() });
     expect(buildLevels({ root }).errors[0]).toMatch(/name must be NNN.tmj, from 001 to 100/);
+  });
+
+  describe("themes and new enemies (plan 1g2)", () => {
+    // The versioned files equal a fresh build (checked above), so they are read as they are.
+    const level = (n: number) =>
+      JSON.parse(
+        readFileSync(
+          path.join(repo, `levels/generated/${String(n).padStart(3, "0")}.json`),
+          "utf8",
+        ),
+      );
+    const gids = (n: number, layer: string): number[] =>
+      level(n).layers.find((l: { name: string }) => l.name === layer).data;
+    const types = (n: number): string[] =>
+      level(n).layers[2].objects.map((o: { type: string }) => o.type);
+
+    it("keeps level 1 as the versioned file", () => {
+      const fresh = makeRoot({ "001.tmj": realSource() });
+      buildLevels({ root: fresh });
+      expect(output(fresh)).toBe(
+        readFileSync(path.join(repo, "levels/generated/001.json"), "utf8"),
+      );
+      expect(level(1).properties).toContainEqual({ name: "tier", type: "int", value: 1 });
+    });
+
+    it("draws the desert, the cave and the snow without grass", () => {
+      for (const n of [31, 41, 71]) {
+        const terrain = gids(n, "terrain");
+        expect(terrain.some((g) => g >= 21 && g <= 24)).toBe(false);
+        expect(terrain.some((g) => g >= 41)).toBe(true);
+      }
+    });
+
+    it("level 11 has the meadow's collision and no sprout; 30 has no sand or snow", () => {
+      expect(gids(11, "decor")).not.toContain(125);
+      const solid = (n: number) => gids(n, "terrain").map((g) => (g === 0 ? 0 : 1));
+      expect(solid(11).length).toBeGreaterThan(0);
+      expect(gids(30, "terrain").some((g) => (g >= 41 && g <= 44) || (g >= 61 && g <= 64))).toBe(
+        false,
+      );
+    });
+
+    it("the spike is the same GID in levels 1 and 95", () => {
+      expect(gids(1, "terrain")).toContain(69);
+      expect(gids(95, "terrain")).toContain(69);
+    });
+
+    it("has at most one secret item, no spiky before 31 and no vertical flyer before 41", () => {
+      for (let n = 1; n <= 100; n += 1) {
+        const list = types(n);
+        expect(list.filter((t) => t === "secret").length).toBeLessThanOrEqual(1);
+        if (n < 31) expect(list).not.toContain("spiky");
+        if (n < 41) expect(list).not.toContain("flyer-v");
+      }
+      const all = Array.from({ length: 100 }, (_, i) => types(i + 1)).flat();
+      expect(all).toContain("spiky");
+      expect(all).toContain("flyer-v");
+      expect(all).toContain("secret");
+    });
+
+    it("rejects a manual level with two secret items", () => {
+      const json = JSON.parse(realSource());
+      const objects = json.layers[2].objects;
+      const next = json.nextobjectid;
+      for (const [i, x] of [100, 120].entries()) {
+        objects.push({
+          height: 0,
+          id: next + i,
+          name: "",
+          point: true,
+          rotation: 0,
+          type: "secret",
+          visible: true,
+          width: 0,
+          x,
+          y: 171,
+        });
+      }
+      json.nextobjectid = next + 2;
+      const bad = makeRoot({ "001.tmj": JSON.stringify(json) });
+      expect(buildLevels({ root: bad }).errors).toEqual([
+        'level 1 (levels/manual/001.tmj): a level has at most one "secret" spawn',
+      ]);
+    });
+
+    it("applies the theme of its tier to a manual level", () => {
+      const manual = makeRoot({ "001.tmj": realSource(), "031.tmj": realSource() });
+      expect(buildLevels({ root: manual }).errors).toEqual([]);
+      const terrain = JSON.parse(output(manual, "031.json")).layers[0].data as number[];
+      expect(terrain.some((g) => g >= 61 && g <= 64)).toBe(true);
+      expect(terrain.some((g) => g >= 21 && g <= 24)).toBe(false);
+    });
   });
 });

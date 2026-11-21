@@ -28,7 +28,7 @@ export interface GameTexts {
 
 export interface GameHandle {
   /** Loads a level (on demand, ADR 0013), starts it and shows the canvas; once. */
-  start(levelNumber?: number): void;
+  start(levelNumber?: number, options?: { showSecret?: boolean }): void;
 }
 
 /**
@@ -102,6 +102,8 @@ export function createGame(parent: HTMLElement, bus: EventBus, texts: GameTexts)
     return scene instanceof LevelScene ? scene : null;
   };
 
+  // Set once by start(): `?segredo=1` in `pnpm dev` (plan 1g2, decision 4).
+  let showSecret = false;
   const sceneData = (level: LevelData): LevelSceneData => ({
     level,
     bus,
@@ -116,6 +118,7 @@ export function createGame(parent: HTMLElement, bus: EventBus, texts: GameTexts)
     },
     levelWord: texts.levelWord,
     font: token("--font-ui"),
+    showSecret,
   });
 
   /** Loads a level and starts its scene in place of the one running, if any. */
@@ -148,9 +151,10 @@ export function createGame(parent: HTMLElement, bus: EventBus, texts: GameTexts)
 
   let started = false;
   return {
-    start(levelNumber = 1) {
+    start(levelNumber = 1, options = {}) {
       if (started) return;
       started = true;
+      showSecret = options.showSecret ?? false;
       open(levelNumber).catch((error: unknown) => {
         // No error screen until item 1j: the failure goes to the console (plan 1b).
         // biome-ignore lint/suspicious/noConsole: the only report of a failed load until 1j

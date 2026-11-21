@@ -5,7 +5,7 @@
     ".gitleaks.toml",
     ".gitleaksignore",
     "assets/kenney/",
-    "kenney_pixel-platformer/"
+    "packs/"
   ],
   "owners": {
     "docs/adr/": "architect",

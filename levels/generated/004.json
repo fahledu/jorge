@@ -240,12 +240,12 @@
     {
       "name": "contentHash",
       "type": "string",
-      "value": "ed448debca923351"
+      "value": "ace70afd81702fcb"
     },
     {
       "name": "generatorVersion",
       "type": "int",
-      "value": 1
+      "value": 2
     },
     {
       "name": "levelNumber",

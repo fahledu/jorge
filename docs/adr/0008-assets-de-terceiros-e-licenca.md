@@ -5,7 +5,7 @@
 
 ## Contexto
 Os gráficos vêm do pack Pixel Platformer 1.2 da Kenney (CC0, crédito opcional), hoje na
-pasta `kenney_pixel-platformer/` da raiz: PNGs avulsos, folhas (normal e `_packed`),
+pasta `packs/pixel-platformer/` da raiz: PNGs avulsos, folhas (normal e `_packed`),
 tilesets do Tiled e um projeto do Construct 3. O jogo usa só as folhas e os tilesets.
 Pack inteiro no git pesa e mistura o que se usa com o que não se usa.
 
@@ -20,8 +20,15 @@ Pack inteiro no git pesa e mistura o que se usa com o que não se usa.
   cópia e o SHA-256 de cada arquivo copiado. Um teste confere os hashes.
 - **Arquivos do pack não são editados.** Recorte, recoloração ou animação derivada vai
   para `assets/own/` com a origem anotada no `SOURCE.md` dela.
-- **A pasta `kenney_pixel-platformer/` da raiz sai do git** (`.gitignore`); fica só como
-  fonte local para copiar arquivo novo quando um trecho precisar.
+- **A pasta `packs/` da raiz fica fora do git** (`.gitignore`), uma subpasta por pack
+  (`pixel-platformer/` é o pack base); é só a fonte local para copiar arquivo novo
+  quando um trecho ou um tema precisar.
+- **Expansões aceitas:** `pixel-platformer-blocks/`, `-farm/`, `-food/` e
+  `-industrial/`, oficiais da Kenney, CC0; uso nos temas (ADR 0015). Arquivo usado de
+  uma expansão é copiado para `assets/kenney/<pasta do pack>/`, com a estrutura do pack
+  e o `License.txt` dela (ex.: `assets/kenney/pixel-platformer-farm/Tilemap/...`); o
+  pack base continua na raiz de `assets/kenney/`. O `SOURCE.md` é um só, com uma seção
+  por pack (nome, versão, URL, data, SHA-256 de cada arquivo).
 - **Atualizar o pack** (versão nova da Kenney): cópia nova, hashes novos, `levels:check`
   (ADR 0013) e o jogo testado à mão; ids de tile mudados quebram trechos e precisam de
   plano.
@@ -39,6 +46,7 @@ Pack inteiro no git pesa e mistura o que se usa com o que não se usa.
   `.tsx` apontam para a versão `_packed`.
 - Sprite novo do pack preciso para uma feature → copiado da pasta local e registrado no
   `SOURCE.md` no mesmo commit.
+- Arquivo de expansão sem o `License.txt` da expansão copiado ao lado → teste falha.
 
 ## Descartado
 - **Pack inteiro no git:** inclui o projeto do Construct 3 e 180 PNGs avulsos que o jogo

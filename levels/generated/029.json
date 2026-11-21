@@ -166,11 +166,11 @@
           "name": "",
           "point": true,
           "rotation": 0,
-          "type": "coin",
+          "type": "secret",
           "visible": true,
           "width": 0,
-          "x": 1197,
-          "y": 171
+          "x": 999,
+          "y": 153
         },
         {
           "height": 0,
@@ -181,7 +181,7 @@
           "type": "coin",
           "visible": true,
           "width": 0,
-          "x": 1215,
+          "x": 1197,
           "y": 171
         },
         {
@@ -193,7 +193,7 @@
           "type": "coin",
           "visible": true,
           "width": 0,
-          "x": 1233,
+          "x": 1215,
           "y": 171
         },
         {
@@ -205,8 +205,8 @@
           "type": "coin",
           "visible": true,
           "width": 0,
-          "x": 1557,
-          "y": 153
+          "x": 1233,
+          "y": 171
         },
         {
           "height": 0,
@@ -217,7 +217,7 @@
           "type": "coin",
           "visible": true,
           "width": 0,
-          "x": 1773,
+          "x": 1557,
           "y": 153
         },
         {
@@ -229,12 +229,24 @@
           "type": "coin",
           "visible": true,
           "width": 0,
+          "x": 1773,
+          "y": 153
+        },
+        {
+          "height": 0,
+          "id": 15,
+          "name": "",
+          "point": true,
+          "rotation": 0,
+          "type": "coin",
+          "visible": true,
+          "width": 0,
           "x": 1989,
           "y": 189
         },
         {
           "height": 0,
-          "id": 15,
+          "id": 16,
           "name": "",
           "point": true,
           "rotation": 0,
@@ -246,7 +258,7 @@
         },
         {
           "height": 0,
-          "id": 16,
+          "id": 17,
           "name": "",
           "point": true,
           "rotation": 0,
@@ -265,7 +277,7 @@
     }
   ],
   "nextlayerid": 4,
-  "nextobjectid": 17,
+  "nextobjectid": 18,
   "orientation": "orthogonal",
   "properties": [
     {
@@ -276,12 +288,12 @@
     {
       "name": "contentHash",
       "type": "string",
-      "value": "5f9480ce92865604"
+      "value": "f77eb0425f751bf9"
     },
     {
       "name": "generatorVersion",
       "type": "int",
-      "value": 1
+      "value": 2
     },
     {
       "name": "levelNumber",

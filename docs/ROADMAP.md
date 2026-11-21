@@ -120,17 +120,37 @@ que terminou").
 
 ### 1g2. Temas e inimigos novos
 - **Escopo:** pedido depois do teste à mão do 1g ("todas as fases têm a mesma cara").
-  Tema por bloco de tiers (campo, deserto, neve): fundo do tema, troca de terreno e
-  decoração da paleta base pelo gerador, variantes de sprite dos inimigos por tema;
+  Sistema de temas a cada 10 fases com a tabela dos 10 (ADR 0015): troca de terreno e
+  decoração da paleta base pelo gerador, fundo com faixa, cor de céu e tom por tema,
+  variante de cor dos inimigos por tema; completos os 5 temas que saem só do pack base
+  (campo, floresta, deserto, caverna, neve); os 5 de expansão (fazenda, fábrica,
+  templo, doces, castelo) usam provisoriamente um tema do pack base (fazenda → campo,
+  fábrica → caverna, templo → deserto, doces → neve, castelo → caverna; plano 1g2);
   inimigos novos espinhoso e voador vertical, e o tipo de spawn do item secreto (só o
-  spawn, o sorteio de um por fase e o sprite; o efeito, só no desafio, é do 1i2); assets
-  novos do pack copiados e registrados; as 100 fases regeneradas com os 10 trechos
-  provisórios.
+  spawn, o sorteio de um por fase e o sprite; o efeito, só no desafio, é do 1i2); as 100
+  fases regeneradas com os 10 trechos provisórios. Nenhum arquivo novo em
+  `assets/kenney/`.
 - **ADRs:** 0015, 0014 (inimigos e spawn do item secreto), 0013, 0012, 0008.
 - **Depende de:** 1g; ADRs 0014 e 0015 aceitos.
-- **Pronto quando:** os casos-limite do ADR 0015 passam; `?fase=1`, `31` e `61` mostram
-  os três temas; espinhoso fere ao ser pisado e voador vertical é derrotado pisando, na
-  fase 1 ou num trecho de teste.
+- **Pronto quando:** os casos-limite do ADR 0015 que não dependem das expansões passam;
+  `?fase=1`, `11`, `31`, `41` e `71` mostram campo, floresta, deserto, caverna e neve,
+  cada um com o seu céu, e com jogador, inimigos e espinhos legíveis; `?fase=21` mostra o
+  provisório do campo; espinhoso fere ao ser pisado e voador vertical é derrotado
+  pisando, numa fase gerada.
+
+### 1g3. Temas das expansões
+- **Escopo:** temas fazenda, fábrica, templo, doces e castelo com terreno e decoração
+  das expansões CC0 da Kenney (ADR 0015), no lugar dos provisórios do 1g2: tabela de
+  tiles de cada um pela folha numerada da expansão, céu e tom de cada um; fase gerada com
+  mais de um tileset embutido (adição ao ADR 0012, no plano); cópia dos arquivos usados
+  das expansões para `assets/kenney/<pasta do pack>/` **pelo usuário** (pasta protegida
+  por hook), com `License.txt` e SHA-256 no `SOURCE.md` (ADR 0008); as fases 21–30,
+  51–70 e 81–100 regeneradas.
+- **ADRs:** 0015, 0008, 0012, 0013.
+- **Depende de:** 1g2; adição ao ADR 0012 aceita.
+- **Pronto quando:** os casos-limite restantes do ADR 0015 passam; `?fase=21`, `51`,
+  `61`, `81` e `91` mostram fazenda, fábrica, templo, doces e castelo, legíveis; as
+  fases 1–20, 31–50 e 71–80 não mudam; o teste de hashes cobre os arquivos novos.
 
 ### 1h. Biblioteca de trechos e ajuste da curva
 - **Escopo:** pelo menos 30 trechos escritos por um agente no formato do Tiled, 3 ou
@@ -218,7 +238,7 @@ que terminou").
   onde ver logs e alertas, e o registro de que não há backup porque não há dado no
   servidor, ADR 0011).
 - **ADRs:** 0011.
-- **Depende de:** 1k; nota de handoff aceita na plataforma.
+- **Depende de:** 1k, 1g3; nota de handoff aceita na plataforma.
 - **Pronto quando:** deploy de um SHA feito pelo workflow e voltado para o SHA anterior
   pelo procedimento do `docs/OPERACAO.md`; headers e CSP conferidos no domínio; o
   critério "MVP entregue quando" cumprido.
@@ -264,7 +284,7 @@ direto: ao fechar uma fase, o usuário escolhe o que vira item da próxima; o es
 sai desta lista, e o descartado também.
 
 - Fases especiais e chefes a cada 10 fases, feitas à mão (fora do MVP)
-- Mais inimigos: blocos com rosto, saltadores, atiradores (fora do MVP)
+- Mais inimigos: bola de espinhos, saltador, andador grande de 2 pisões (desenhos sem uso na folha de personagens), atiradores (fora do MVP)
 - Chaves e portas, blocos "?" com itens e poderes (fora do MVP)
 - Água nadável, escadas e plataformas móveis (fora do MVP)
 - Checkpoint no meio da fase (fora do MVP)
@@ -280,12 +300,12 @@ sai desta lista, e o descartado também.
 - Plataformas atravessáveis por baixo (fora de escopo do plano 1c)
 - Voador com trajetória em onda (fora de escopo do plano 1e; o vertical entrou no 1g2)
 - Passagem secreta (bloco falso, parede atravessável) levando ao item secreto (fora do MVP, ADR 0014)
-- Quarto tema visual, como noite ou caverna (fora do MVP, ADR 0015)
 - Quique mais alto ao pisar no inimigo segurando o pulo (fora de escopo do plano 1e)
 - Pontos flutuando no lugar do inimigo derrotado ou da moeda (fora de escopo do plano 1f)
 - Tempo-alvo do bônus visível durante a fase (fora de escopo do plano 1f)
 - Morros do fundo acompanhando a altura do chão ao longo da fase (fora de escopo do plano 1g)
 - Fases além das 100, geradas sem fim (fora de escopo do plano 1g)
+- Apresentar o espinhoso e o voador vertical ao jogador antes do primeiro encontro (fora de escopo do plano 1g2)
 - Ranking global top 100 do desafio no servidor, com pódio dos 3 melhores: exige
   pontuação conferível (nota do ADR 0014), moderação de apelido e LGPD, `connect-src` na
   CSP (ADR 0011) e integração com a plataforma fahledu; detalhe na Fase 2 (fora do MVP)

@@ -27,7 +27,7 @@ export function makeChunk(name: string, spec: ChunkSpec = {}): LibraryChunk {
   if (tags.includes("start")) types.unshift({ type: "start", col: 1 });
   if (tags.includes("finish")) types.push({ type: "flag", col: width - 2 });
   const spawns: Spawn[] = types.map((s, index) => {
-    const row = groundAt(s.col) - (s.type === "flyer" ? 3 : 1);
+    const row = groundAt(s.col) - (s.type === "flyer" || s.type === "flyer-v" ? 3 : 1);
     const spawn: Spawn = {
       id: index + 1,
       type: s.type,
