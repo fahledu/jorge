@@ -23,19 +23,9 @@ Leia o plano da feature em `docs/plans/`. Referência visual: as telas da featur
 CSS do projeto, sem copiar o arquivo. Onde o plano diverge do mockup, vale o plano.
 Visual e textos da interface: `docs/DESIGN.md` e o tema do código para onde ele aponta.
 
-| Assunto | ADR |
-|---|---|
-| Decisões e fonte única | 0001 |
-| Stack e versões | 0003 |
-| Camadas: `domain` puro, entrada abstraída, eventos entre `game` e `ui` | 0004 |
-| Fases: trechos, gerador, curva, validador, `contentHash` | 0013 |
-| Regras do jogo, pontuação, modos livre e desafio | 0014 |
-| Temas visuais por bloco de fases | 0015 |
-| Save e recordes locais | 0007 |
-| Assets de terceiros e licença | 0008 |
-| Interface, controles e acessibilidade | 0009 |
-| Testes e qualidade | 0010 |
-| Arquivos `.tmj` escritos por agente: formato, prévia e conferência (ao mexer em `levels/`) | 0012 |
+ADRs da área (domínio, cenas, interface, fases, save): leia os que o plano do item cita;
+sem plano, procure no índice `docs/adr/README.md`. Vale só o que o índice marca como
+Aceito; ADR "Substituído por NNNN" não vale; leia o NNNN.
 
 ## Como trabalhar
 

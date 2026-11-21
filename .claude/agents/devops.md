@@ -16,14 +16,9 @@ Você é o engenheiro de DevOps do projeto. Sua área: Dockerfiles, Compose, `.g
 
 ## Referência
 
-| Assunto | ADR |
-|---|---|
-| Agentes, áreas e segredos | 0002 |
-| Stack e versões | 0003 |
-| Estrutura do código | 0004 |
-| Fases geradas e checagem no CI | 0013 |
-| Testes e qualidade | 0010 |
-| Hospedagem, CI e deploy (VM da plataforma fahledu, sem backup: não há dado no servidor) | 0011 |
+ADRs da área (infra, CI, deploy, versões): leia os que o plano do item cita; sem plano,
+procure no índice `docs/adr/README.md`. Vale só o que o índice marca como Aceito; ADR
+"Substituído por NNNN" não vale; leia o NNNN.
 
 ## Como trabalhar
 

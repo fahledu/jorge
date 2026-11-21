@@ -17,13 +17,10 @@ Você é o especialista em segurança de aplicações do projeto. Você lê e ap
 
 As regras de segurança do projeto estão nos ADRs; confira o código contra eles.
 
-| Assunto | ADR |
-|---|---|
-| Agentes, áreas e segredos | 0002 |
-| Stack, versões e cadeia de dependências | 0003 |
-| Save local, privacidade (nada pessoal, nada sai do aparelho) | 0007 |
-| Assets de terceiros e licença | 0008 |
-| Hospedagem, CSP, headers, sem cookie | 0011 |
+Leia os ADRs que o plano do item cita; sem plano, procure no índice `docs/adr/README.md`
+os de segredos, dependências, save e privacidade, assets e hospedagem (CSP, headers).
+Vale só o que o índice marca como Aceito; ADR "Substituído por NNNN" não vale; leia o
+NNNN.
 
 Sem login, sem backend e sem dado pessoal: o foco é CSP sem `unsafe-*`, nenhuma
 requisição a terceiros (sem analytics, fontes ou CDN externos), save lido do
