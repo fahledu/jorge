@@ -236,7 +236,10 @@ que terminou").
 - **Escopo:** Dockerfile, `Caddyfile` com headers e cache, compose, `jorge.caddy`, workflow de deploy, monitoramento, nota de handoff para a plataforma
   (orçamento de memória, nomes, DNS), `docs/OPERACAO.md` (deploy, voltar versão,
   onde ver logs e alertas, e o registro de que não há backup porque não há dado no
-  servidor, ADR 0011).
+  servidor, ADR 0011); ecossistemas `docker` e `docker-compose` no
+  `.github/dependabot.yml`, no formato pedido pela plataforma (handoff da plataforma,
+  "Pedido 2026-11-21: Dependabot também para as imagens Docker"), com a imagem do
+  `node` fixada igual em todo lugar.
 - **ADRs:** 0011.
 - **Depende de:** 1k, 1g3; nota de handoff aceita na plataforma.
 - **Pronto quando:** deploy de um SHA feito pelo workflow e voltado para o SHA anterior
