@@ -5,6 +5,9 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "e2e",
   forbidOnly: !!process.env.CI,
+  // Each worker runs Phaser at 60 fps; with more than 2 the timing and jump checks fail
+  // under load (3 workers still failed once, 2 passed three runs in a row).
+  workers: 2,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? "line" : "list",
   use: { baseURL: "http://localhost:5191", trace: "retain-on-failure" },

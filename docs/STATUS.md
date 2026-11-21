@@ -110,12 +110,7 @@ resolvida. Questão resolvida sai daqui e vai para um ADR ou plano. O histórico
 ## Questões em aberto
 
 - Firefox não verificado no 1g.
-- E2E em paralelo nesta máquina: com os workers padrão, cerca de 20 testes falham por
-  erro do próprio Playwright (trace truncado, navegador fechado); com `--workers=1` os 41
-  passam. Não conferido se já acontecia antes do 1g; se repetir, fixar `workers` no
-  `playwright.config.ts` (devops).
 - O efeito de derrota com reduzir efeitos não tem E2E (só unidade e roteiro).
-- `pnpm audit` não rodou no 1f nem no 1g (sem dependência nova).
 
 
 - Confirmar: sem analytics nem rastreio de qualquer tipo (suposição do ADR 0007); a
